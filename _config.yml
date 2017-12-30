@@ -1,3 +1,4 @@
-theme: JitLab Connect
+title: JitLab Connect
 description: [A short description of your site's purpose]
 show_downloads: false
+theme: jekyll-theme-cayman
