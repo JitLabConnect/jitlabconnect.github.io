@@ -1,5 +1,5 @@
 <p align="center"> 
-  <img src="/img/JitLabFlow.png">
+  <img src="/img/JitLabFlow.png" width = "700">
 </p>
 
 ## Advantages
