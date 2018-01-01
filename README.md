@@ -12,6 +12,9 @@
   - A mapping between GitLab and Jira usernames that is used when username in a request does not match any existing JIRA user.
   - Default Jira username
   - Jira actions for each type of requests.
+- Configure the GitLab project ( `Project > Settings > Integrations` ): web hook URL and triggers.
+- Push commits and merge requests with messages including references to JIRA issues
+- Check updates in the JIRA issues
 
 ## Support or Contact
-Having trouble with Add-on? Check out our documentation or [contact support](https://github.com/JitLabConnect/jitlabconnect.github.io/issues) and we'll help you sort it out.
+Having trouble with add-on? Check out our documentation or [contact support](https://github.com/JitLabConnect/jitlabconnect.github.io/issues) and we'll help you sort it out.
