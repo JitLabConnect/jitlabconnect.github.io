@@ -1,6 +1,7 @@
 <p align="center"> 
   <img src="/img/JitLabFlow.png">
 </p>
+
 ## Advantages
 - Support for **Push requests** and **Merge requests**
 - Detailed configuration of actions: **Comment**, **Activity**, **Do nothing**
