@@ -1,5 +1,6 @@
-![flow diagram](/img/JitLabFlow.png)
-	
+<p align="center"> 
+  <img src="/img/JitLabFlow.png">
+</p>
 ## Advantages
 - Support for **Push requests** and **Merge requests**
 - Detailed configuration of actions: **Comment**, **Activity**, **Do nothing**
@@ -15,6 +16,17 @@
 - Configure the GitLab project ( `Project > Settings > Integrations` ): web hook URL and triggers.
 - Push commits and merge requests with messages including references to JIRA issues
 - Check updates in the JIRA issues
+
+## Screenshots
+### Admin panel
+<p align="center"> 
+  <img src="/img/admin.png">
+</p>
+
+### Activity panel
+<p align="center"> 
+  <img src="/img/activity.png">
+</p>
 
 ## Support or Contact
 Having trouble with add-on? Check out our documentation or [contact support](https://github.com/JitLabConnect/jitlabconnect.github.io/issues) and we'll help you sort it out.
