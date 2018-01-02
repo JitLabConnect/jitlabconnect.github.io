@@ -30,4 +30,4 @@
 </p>
 
 ## Support or Contact
-Having trouble with add-on? Check out our documentation or [contact support](https://github.com/JitLabConnect/jitlabconnect.github.io/issues) and we'll help you sort it out.
+Having trouble with add-on? Check out our [documentation](https://github.com/JitLabConnect/jitlabconnect.github.io/wiki) or [contact support](https://github.com/JitLabConnect/jitlabconnect.github.io/issues) and we'll help you sort it out.
