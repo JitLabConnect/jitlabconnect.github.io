@@ -1,4 +1,8 @@
 title: JitLab Connect
 description: Report to the Jira about updates from GitLab
-show_downloads: false
+show_downloads: true
 theme: jekyll-theme-cayman
+github:
+  shop_url: https://marketplace.atlassian.com/1218423
+  shop_text: Try it free
+  another_url: another value
