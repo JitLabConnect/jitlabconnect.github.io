@@ -29,5 +29,10 @@
   <img src="/img/activity.png">
 </p>
 
+### Links
+<p align="center"> 
+  <img src="/img/links.png">
+</p>
+
 ## Support or Contact
 Having trouble with add-on? Check out our [documentation](https://github.com/JitLabConnect/jitlabconnect.github.io/wiki) or [contact support](https://github.com/JitLabConnect/jitlabconnect.github.io/issues) and we'll help you sort it out.
