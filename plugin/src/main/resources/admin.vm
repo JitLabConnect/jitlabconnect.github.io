@@ -1,0 +1,140 @@
+<html>
+    <head>
+        <title>$i18n.getText("jitlab-connect.admin.label")</title>
+        <meta name="decorator" content="atl.admin" />
+        $webResourceManager.requireResource("com.jitlab.plugin:jitlab-connect-resources")
+        $webResourceManager.requireResource("com.atlassian.auiplugin:aui-flag")
+    </head>
+    <body>
+        <form class="aui" id="jitlab-admin">
+            <div id="jitlab-messages"></div>
+            <div class="aui-message aui-message-hint">
+                <p class="title">
+                    <strong>$i18n.getText("jitlab-connect.admin.url.label")
+                        <font id="jitlab-url"></font>
+                    </strong>
+                </p>
+            </div>
+            <fieldset>
+                <legend>
+                    <span>$i18n.getText("jitlab-connect.admin.label")</span>
+                </legend>
+
+                <h3>$i18n.getText("jitlab-connect.admin.main")</h3>
+
+                <!-- token -->
+                <div class="field-group">
+                    <label for="token">$i18n.getText("jitlab-connect.admin.token.label"):
+                        <span class="aui-icon icon-required">(required)</span>
+                    </label>
+                    <input name="token" class="text" id="jitlab-token" type="text" />
+                    <div class="description">$i18n.getText("jitlab-connect.admin.token.caption")</div>
+                    <div class="error" id="jitlab-token-error">$i18n.getText("jitlab-connect.admin.token.error")</div>
+                </div>
+                <div class="buttons-container">
+                    <input class="button" id="jitlab-generate" type="button"
+                        value="$i18n.getText('jitlab-connect.admin.generate.label')" />
+                </div>
+
+                <!-- all issues -->
+                <div class="field-group">
+                    <label>$i18n.getText("jitlab-connect.admin.allissues.label"):</label>
+                    <div class="checkbox">
+                        <input class="checkbox" type="checkbox" name="jitlab-allissues" id="jitlab-allissues" />
+                        <label for="jitlab-allissues">$i18n.getText("jitlab-connect.admin.allissues.caption")</label>
+                    </div>
+                    <div class="description">$i18n.getText("jitlab-connect.admin.allissues.caption.caption")</div>
+                </div>
+
+                <h3>$i18n.getText("jitlab-connect.admin.users")</h3>
+
+                <!-- default user -->
+                <div class="field-group">
+                    <label for="user">$i18n.getText("jitlab-connect.admin.user.label"):</label>
+                    <input name="user" class="text" id="jitlab-user" type="text" />
+                    <div class="description">$i18n.getText("jitlab-connect.admin.user.caption")</div>
+                </div>
+
+                <!-- mapping -->
+                <div class="field-group">
+                    <label for="mapping">$i18n.getText("jitlab-connect.admin.mapping.label"):</label>
+                    <textarea name="mapping" class="textarea" id="jitlab-mapping"
+                        placeholder="GitLabName,JiraName;.."></textarea>
+                    <div class="description">$i18n.getText("jitlab-connect.admin.mapping.caption")</div>
+                </div>
+
+                <h3>$i18n.getText("jitlab-connect.admin.commits")</h3>
+
+                <!-- commit -->
+                <div class="field-group">
+                    <label for="jitlab-commit">$i18n.getText("jitlab-connect.admin.triggers.commit.label"):</label>
+                    <select class="select" id="jitlab-commit" name="jitlab-commit">
+                        <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
+                        <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
+                        <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
+                    </select>
+
+                    <div class="description">$i18n.getText("jitlab-connect.admin.triggers.commit.caption")</div>
+                </div>
+
+                <div class="field-group">
+                    <div class="checkbox">
+                        <input class="checkbox" type="checkbox" name="jitlab-link-commit" id="jitlab-link-commit" />
+                        <label for="jitlab-link-commit">$i18n.getText("jitlab-connect.admin.triggers.link.label")
+                        </label>
+                    </div>
+                </div>
+
+                <h3>$i18n.getText("jitlab-connect.admin.merges")</h3>
+
+                <!-- merge -->
+                <div class="field-group">
+                    <label for="jitlab-merge1">$i18n.getText("jitlab-connect.admin.triggers.merge.label1"):</label>
+                    <select class="select" id="jitlab-merge1" name="jitlab-merge1">
+                        <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
+                        <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
+                        <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="jitlab-merge2">$i18n.getText("jitlab-connect.admin.triggers.merge.label2"):</label>
+                    <select class="select" id="jitlab-merge2" name="jitlab-merge2">
+                        <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
+                        <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
+                        <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="jitlab-merge3">$i18n.getText("jitlab-connect.admin.triggers.merge.label3"):</label>
+                    <select class="select" id="jitlab-merge3" name="jitlab-merge3">
+                        <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
+                        <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
+                        <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="jitlab-merge4">$i18n.getText("jitlab-connect.admin.triggers.merge.label4"):</label>
+                    <select class="select" id="jitlab-merge4" name="jitlab-merge4">
+                        <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
+                        <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
+                        <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
+                    </select>
+                    <div class="description">$i18n.getText("jitlab-connect.admin.triggers.merge.caption")</div>
+                </div>
+
+                <div class="field-group">
+                    <div class="checkbox">
+                        <input class="checkbox" type="checkbox" name="jitlab-link-merge" id="jitlab-link-merge" />
+                        <label for="jitlab-link-merge">$i18n.getText("jitlab-connect.admin.triggers.link.label")</label>
+                    </div>
+                </div>
+
+                <!-- submit -->
+                <div class="field-group">
+                    <input class="aui-button aui-button-primary" type="submit"
+                        value="$i18n.getText('jitlab-connect.admin.save.label')" />
+                </div>
+            </fieldset>
+        </form>
+    </body>
+</html>

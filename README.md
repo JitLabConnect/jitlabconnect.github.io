@@ -5,7 +5,9 @@
 ## Advantages
 - Support for **Push requests** and **Merge requests**
 - Detailed configuration of actions: **Comment**, **Activity**, **Do nothing**
-- Update multiple tasks in a single request
+- Support of multiple tasks in a single request
+- Adding links to tasks
+- [Open source](https://github.com/JitLabConnect/jitlabconnect.github.io/)
 
 ## Quick start
 - Install the add-on following the instructions available in the Atlassian Marketplace.
