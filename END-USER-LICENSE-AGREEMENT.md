@@ -5,6 +5,7 @@ By installing, copying or using JitLab Connect add-on for Jira Server software (
 This EULA is a supplement to the
 - Atlassian Marketplace Terms of Use (Atlassian EULA)
 - Privacy & Security Statement (JitLab Connect Privacy Statement)
+
 By agreeing to the terms of this EULA, you also agree to all of the above.
 
 If you do not agree with the EULA and its supplements, you must not install, copy or use the PLUGIN and must uninstall and remove any version or copy of it.
