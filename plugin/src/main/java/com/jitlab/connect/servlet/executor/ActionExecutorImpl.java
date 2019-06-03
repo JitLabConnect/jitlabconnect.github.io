@@ -102,7 +102,7 @@ public class ActionExecutorImpl implements ActionExecutor {
                     .icon(Option.option(Image.withUrl(URI.create(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png"))))
                     .build();
             for (Activity activity : result.right()) {
-                log.debug("Pushed to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
+                log.debug("Push to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
                 activityService.postActivity(activity);
             }
 
@@ -137,7 +137,14 @@ public class ActionExecutorImpl implements ActionExecutor {
             linkBuilder.build();
             RemoteIssueLink link = linkBuilder.build();
             RemoteIssueLinkService.CreateValidationResult createValidateResult = linkService.validateCreate(user, link); //.validateCreate(authContext.getLoggedInUser(), link);
-            linkService.create(user, createValidateResult);
+
+            if (createValidateResult.isValid()) {
+                log.debug("Create a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+                linkService.create(user, createValidateResult);
+            } else {
+                log.error("Failed to link JIRA task ({}, {})", issue.getKey(), user.getUsername());
+            }
+
         }
     }
 

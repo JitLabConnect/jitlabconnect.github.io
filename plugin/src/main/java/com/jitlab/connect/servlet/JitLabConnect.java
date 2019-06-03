@@ -155,7 +155,7 @@ public class JitLabConnect extends HttpServlet {
 
     private void processAction(String requestUser, JiraAction action, PluginSettings settings) {
         // USER
-        ApplicationUser user = userManager.getUserByKey(requestUser);
+        ApplicationUser user = userManager.getUserByName(requestUser);
         if (user == null) {
             try {
                 Map<String, String> mapping = Utility.stringToMap((String) Utility.getOrDefault(settings, ConfigResource.MAPPING, ""));
