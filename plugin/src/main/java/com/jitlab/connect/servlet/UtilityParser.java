@@ -75,7 +75,14 @@ public class UtilityParser {
             // link to issue
             String link = (String) Utility.getOrDefault(settings, ConfigResource.IS_LINK_MERGE, "0");
             if (link.equals("1")) {
-                request.actions.add(new LinkAction(i18n.getText("jitlab-connect.text.mergerequest") + " " + aUrl.getId(), aUrl, aUrl.getId(), issues));
+                request.actions.add(new LinkAction(
+                        i18n.getText("jitlab-connect.text.mergerequest") + " " + aUrl.getId(),
+                        aUrl,
+                        aUrl.getId(),
+                        issues,
+                        !state.equals("opened"),
+                        "is " + state,
+                        true));
             }
         } catch (Exception e) {
             log.debug("Parsing error: {}", e.getMessage());
@@ -126,7 +133,7 @@ public class UtilityParser {
                 // link to issue
                 String link = (String) Utility.getOrDefault(settings, ConfigResource.IS_LINK_COMMIT, "0");
                 if (link.equals("1")) {
-                    request.actions.add(new LinkAction(i18n.getText("jitlab-connect.text.changeset") + " " + aUrl.getId(), aUrl, aUrl.getId(), issues));
+                    request.actions.add(new LinkAction(i18n.getText("jitlab-connect.text.changeset") + " " + aUrl.getId(), aUrl, aUrl.getId(), issues, true, "", false));
                 }
             }
         } catch (Exception e) {

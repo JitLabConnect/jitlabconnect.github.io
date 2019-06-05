@@ -27,7 +27,6 @@ import java.util.List;
 
 public class ActionExecutorImpl implements ActionExecutor {
     private static final Logger log = LoggerFactory.getLogger(ActionExecutorImpl.class);
-    //private IssueLinkManager linkManager;
     private RemoteIssueLinkService linkService;
     private CommentService commentService;
     private ApplicationProperties applicationProperties;
@@ -38,113 +37,150 @@ public class ActionExecutorImpl implements ActionExecutor {
         this.commentService = commentService;
         this.applicationProperties = applicationProperties;
         this.activityService = activityService;
-        //this.linkManager = linkManager;
         this.linkService = linkService;
         this.i18n = i18n;
     }
 
     public void doComment(CommentAction action, ApplicationUser user, List<MutableIssue> issues) {
         for (MutableIssue issue : issues) {
-            log.debug("Push to JIRA comments ({}, {})", issue.getKey(), user.getUsername());
+            try {
+                log.debug("Push to JIRA comments ({}, {})", issue.getKey(), user.getUsername());
 
-            commentService.create(
-                    user,
-                    commentService.validateCommentCreate(user,
-                            CommentService.CommentParameters
-                                    .builder()
-                                    .issue(issue)
-                                    .author(user)
-                                    .body(action.getAction() + " " + action.getUrl().linkJira()
-                                            + "{panel}" + action.getText() + "{panel}")
-                                    .build()
-                    ),
-                    true);
+                commentService.create(
+                        user,
+                        commentService.validateCommentCreate(user,
+                                CommentService.CommentParameters
+                                        .builder()
+                                        .issue(issue)
+                                        .author(user)
+                                        .body(action.getAction() + " " + action.getUrl().linkJira()
+                                                + "{panel}" + action.getText() + "{panel}")
+                                        .build()
+                        ),
+                        true);
+            } catch (Exception ex) {
+                log.debug("Unexpected error: {}", ex.getMessage());
+            }
         }
     }
 
     public void doActivity(ActivityAction action, ApplicationUser user, List<MutableIssue> issues) {
-
         JiraAuthenticationContext authContext = ComponentAccessor.getJiraAuthenticationContext();
-        authContext.setLoggedInUser(ComponentAccessor.getUserManager().getUserByKey(user.getUsername()));
+        authContext.setLoggedInUser(ComponentAccessor.getUserManager().getUserByKey(user.getKey()));
+
         for (MutableIssue issue : issues) {
-            log.debug("Push to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
-
-            String title = new StringBuilder("<strong>")
-                    .append(user.getDisplayName())
-                    .append("</strong> ")
-                    .append(" ")
-                    .append(action.getTitle())
-                    .append(" ")
-                    .append(i18n.getText("jitlab-connect.text.for"))
-                    .append(" ")
-                    .append(issue.getKey())
-                    .toString();
-
-            Activity.Builder builder = new Activity.Builder(
-                    Application.application("JitLab Connect", URI.create("https://jitlabconnect.github.io/")),
-                    new DateTime(),
-                    new com.atlassian.streams.api.UserProfile.Builder(user.getUsername()).build());
-
-            Either<ValidationErrors, Activity> result = builder
-                    //     .id(Option.option(url)) TODO
-                    .target(new ActivityObject
-                            .Builder()
-                            .urlString(Option.option(issue.getKey()))
-                            .build())
-                    .title(Option.option(new Html(title)))
-                    .content(Option.option(new Html(
-                            "<blockquote><p>"
-                                    + action.getAction() + " " + action.getUrl().link()
-                                    + "</p><div class=\"panel\" style=\"border-width: 1.0px;\"><div class=\"panelContent\"><p>"
-                                    + action.getText()
-                                    + "</p></div></div></blockquote>")))
-                    .url(Option.option(URI.create(action.getUrl().getUrl())))
-                    .icon(Option.option(Image.withUrl(URI.create(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png"))))
-                    .build();
-            for (Activity activity : result.right()) {
+            try {
                 log.debug("Push to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
-                activityService.postActivity(activity);
-            }
 
-            for (ValidationErrors errors : result.left()) {
-                log.error("Failed to push JIRA activity ({}, {})", issue.getKey(), errors.toString());
+                String title = new StringBuilder("<strong>")
+                        .append(user.getDisplayName())
+                        .append("</strong> ")
+                        .append(" ")
+                        .append(action.getTitle())
+                        .append(" ")
+                        .append(i18n.getText("jitlab-connect.text.for"))
+                        .append(" ")
+                        .append(issue.getKey())
+                        .toString();
+
+                Activity.Builder builder = new Activity.Builder(
+                        Application.application("JitLab Connect", URI.create("https://jitlabconnect.github.io/")),
+                        new DateTime(),
+                        new com.atlassian.streams.api.UserProfile.Builder(user.getUsername()).build());
+
+                Either<ValidationErrors, Activity> result = builder
+                        //     .id(Option.option(url)) TODO
+                        .target(new ActivityObject
+                                .Builder()
+                                .urlString(Option.option(issue.getKey()))
+                                .build())
+                        .title(Option.option(new Html(title)))
+                        .content(Option.option(new Html(
+                                "<blockquote><p>"
+                                        + action.getAction() + " " + action.getUrl().link()
+                                        + "</p><div class=\"panel\" style=\"border-width: 1.0px;\"><div class=\"panelContent\"><p>"
+                                        + action.getText()
+                                        + "</p></div></div></blockquote>")))
+                        .url(Option.option(URI.create(action.getUrl().getUrl())))
+                        .icon(Option.option(Image.withUrl(URI.create(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png"))))
+                        .build();
+                for (Activity activity : result.right()) {
+                    log.debug("Push to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
+                    activityService.postActivity(activity);
+                }
+
+                for (ValidationErrors errors : result.left()) {
+                    log.error("Failed to push JIRA activity ({}, {})", issue.getKey(), errors.toString());
+                }
+            } catch (Exception ex) {
+                log.debug("Unexpected error: {}", ex.getMessage());
             }
         }
     }
 
     public void doLink(LinkAction action, ApplicationUser user, List<MutableIssue> issues) {
         for (MutableIssue issue : issues) {
-            log.debug("Push to JIRA links ({}, {})", issue.getKey(), user.getUsername());
+            try {
+                log.debug("Push to JIRA links ({}, {})", issue.getKey(), user.getUsername());
 
-            boolean isExist = false;
-            for (RemoteIssueLink link : linkService.getRemoteIssueLinksForIssue(user, issue).getRemoteIssueLinks()) {
-                if (link.getTitle().equals(action.getText())) {
-                    isExist = true;
-                    break;
+                RemoteIssueLink link = null;
+                boolean isExist = false;
+                for (RemoteIssueLink link1 : linkService.getRemoteIssueLinksForIssue(user, issue).getRemoteIssueLinks()) {
+                    if (link1.getTitle() != null) {
+                        if (link1.getTitle().equalsIgnoreCase(action.getText())) {
+                            link = link1;
+                            isExist = true;
+                            break;
+                        }
+                    }
                 }
+                if (isExist && !action.isShouldBeUpdated()) return;
+
+                if (isExist) {
+                    //  update link
+                    RemoteIssueLink updated = new RemoteIssueLinkBuilder(link)
+                            .resolved(action.isResolved())
+                            .summary(action.getSummary())
+                            .build();
+
+                    RemoteIssueLinkService.UpdateValidationResult updateValidateResult = linkService.validateUpdate(user, updated);
+
+                    if (updateValidateResult.isValid()) {
+                        log.debug("Update a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+                        linkService.update(user, updateValidateResult);
+                    } else {
+                        log.error("Failed to update a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+                    }
+                    return;
+                }
+
+                // create link
+                link = new RemoteIssueLinkBuilder()
+                        .issueId(issue.getId())
+                        //.statusName("resolved")
+                        //.statusIconTitle("icontitle")
+                        //.statusIconLink(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png")
+                        .applicationName("JitLab Connect")
+                        .applicationType("com.jitlab.connect")
+                        .iconUrl(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png")
+                        .relationship("GitLab")
+                        .title(action.getText())
+                        .url(action.getUrl().getUrl())
+                        .resolved(action.isResolved())
+                        .summary(action.getSummary())
+                        .build();
+
+                RemoteIssueLinkService.CreateValidationResult createValidateResult = linkService.validateCreate(user, link);
+
+                if (createValidateResult.isValid()) {
+                    log.debug("Create a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+                    linkService.create(user, createValidateResult);
+                } else {
+                    log.error("Failed to create a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+                }
+            } catch (Exception ex) {
+                log.debug("Unexpected error: {}", ex.getMessage());
             }
-            if (isExist) return;
-
-            // add link
-            RemoteIssueLinkBuilder linkBuilder = new RemoteIssueLinkBuilder();
-            linkBuilder.issueId(issue.getId());
-            linkBuilder.applicationName("JitLab Connect");
-            linkBuilder.applicationType("com.jitlab.connect");
-            linkBuilder.iconUrl(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png");
-            linkBuilder.relationship("GitLab");
-            linkBuilder.title(action.getText());
-            linkBuilder.url(action.getUrl().getUrl());
-            linkBuilder.build();
-            RemoteIssueLink link = linkBuilder.build();
-            RemoteIssueLinkService.CreateValidationResult createValidateResult = linkService.validateCreate(user, link); //.validateCreate(authContext.getLoggedInUser(), link);
-
-            if (createValidateResult.isValid()) {
-                log.debug("Create a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
-                linkService.create(user, createValidateResult);
-            } else {
-                log.error("Failed to link JIRA task ({}, {})", issue.getKey(), user.getUsername());
-            }
-
         }
     }
 

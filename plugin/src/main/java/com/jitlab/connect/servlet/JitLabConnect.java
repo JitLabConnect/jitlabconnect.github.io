@@ -159,13 +159,13 @@ public class JitLabConnect extends HttpServlet {
         if (user == null) {
             try {
                 Map<String, String> mapping = Utility.stringToMap((String) Utility.getOrDefault(settings, ConfigResource.MAPPING, ""));
-                user = userManager.getUserByKey(mapping.get(requestUser));
+                user = userManager.getUserByName(mapping.get(requestUser));
             } catch (Exception ex) {
                 // do nothing
             }
 
             if (user == null) {
-                user = userManager.getUserByKey((String) Utility.getOrDefault(settings, ConfigResource.USER, ""));
+                user = userManager.getUserByName((String) Utility.getOrDefault(settings, ConfigResource.USER, ""));
                 if (user == null) {
                     log.debug("Invalid user name '{}'", requestUser);
                     return;

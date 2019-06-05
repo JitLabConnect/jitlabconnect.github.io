@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jitlab</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.0.6</version>
+    <version>1.0.7</version>
     <organization>
         <name>Kirill Shashov</name>
         <url>https://jitlabconnect.github.io/</url>

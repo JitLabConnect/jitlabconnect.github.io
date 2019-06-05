@@ -99,19 +99,13 @@
             processData: false,
             success: function(data) {
                 if (data.status == "ok") {
-                    AJS.messages.success("#jitlab-messages", {
-                       title: data.message
-                    });
+                    JIRA.Messages.showSuccessMsg(data.message);
                 } else {
-                    AJS.messages.error("#jitlab-messages", {
-                       title: data.message
-                    });
+                    JIRA.Messages.showErrorMsg(data.message);
                 }
             },
             error: function (error) {
-                AJS.messages.error("#jitlab-messages", {
-                   title: 'Something went wrong'
-                });
+                JIRA.Messages.showErrorMsg(data.message);
             }
         });
     }
