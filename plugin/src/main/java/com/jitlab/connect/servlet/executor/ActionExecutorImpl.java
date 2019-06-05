@@ -123,20 +123,22 @@ public class ActionExecutorImpl implements ActionExecutor {
             try {
                 log.debug("Push to JIRA links ({}, {})", issue.getKey(), user.getUsername());
 
-                RemoteIssueLink link = null;
-                boolean isExist = false;
-                for (RemoteIssueLink link1 : linkService.getRemoteIssueLinksForIssue(user, issue).getRemoteIssueLinks()) {
-                    if (link1.getTitle() != null) {
-                        if (link1.getTitle().equalsIgnoreCase(action.getText())) {
-                            link = link1;
-                            isExist = true;
-                            break;
+                RemoteIssueLink link = linkService.getRemoteIssueLinkByGlobalId(user, issue, "jitlab" + action.getUrl().getUrl()).getRemoteIssueLink();
+                if (link == null) {
+                    // just for backward compatibility
+                    for (RemoteIssueLink link1 : linkService.getRemoteIssueLinksForIssue(user, issue).getRemoteIssueLinks()) {
+                        if (link1.getTitle() != null) {
+                            if (link1.getTitle().equalsIgnoreCase(action.getText())) {
+                                link = link1;
+                                break;
+                            }
                         }
                     }
                 }
-                if (isExist && !action.isShouldBeUpdated()) return;
 
-                if (isExist) {
+                if ((link != null) && !action.isShouldBeUpdated()) return;
+
+                if (link != null) {
                     //  update link
                     RemoteIssueLink updated = new RemoteIssueLinkBuilder(link)
                             .resolved(action.isResolved())
@@ -156,10 +158,8 @@ public class ActionExecutorImpl implements ActionExecutor {
 
                 // create link
                 link = new RemoteIssueLinkBuilder()
+                        .globalId("jitlab" + action.getUrl().getUrl())
                         .issueId(issue.getId())
-                        //.statusName("resolved")
-                        //.statusIconTitle("icontitle")
-                        //.statusIconLink(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png")
                         .applicationName("JitLab Connect")
                         .applicationType("com.jitlab.connect")
                         .iconUrl(applicationProperties.getBaseUrl() + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png")
