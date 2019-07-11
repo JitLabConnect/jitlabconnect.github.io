@@ -17,6 +17,8 @@ public final class Config {
     @XmlElement
     private String mapping;
     @XmlElement
+    private String searchByName;
+    @XmlElement
     private String commit; //0 - nothing, 1 - comment, 2 - activity
     @XmlElement
     private String mergeOpen; //0 - nothing, 1 - comment, 2 - activity
@@ -26,6 +28,8 @@ public final class Config {
     private String mergeMerge; //0 - nothing, 1 - comment, 2 - activity
     @XmlElement
     private String mergeClose; //0 - nothing, 1 - comment, 2 - activity
+    @XmlElement
+    private String mergeApprove; //0 - nothing, 1 - comment, 2 - activity
     @XmlElement
     private String allIssues;
     @XmlElement
@@ -119,5 +123,21 @@ public final class Config {
 
     public void setMergeClose(String mergeClose) {
         this.mergeClose = mergeClose;
+    }
+
+    public String getMergeApprove() {
+        return mergeApprove;
+    }
+
+    public void setMergeApprove(String mergeApprove) {
+        this.mergeApprove = mergeApprove;
+    }
+
+    public String getSearchByName() {
+        return searchByName;
+    }
+
+    public void setSearchByName(String searchByName) {
+        this.searchByName = searchByName;
     }
 }

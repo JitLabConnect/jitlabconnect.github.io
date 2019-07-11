@@ -5,6 +5,7 @@ import com.jitlab.connect.servlet.entity.AdaptiveUrl;
 import java.util.List;
 
 public class LinkAction extends JiraAction {
+    private final String id;
     private boolean isResolved;
     private String summary;
     private boolean shouldBeUpdated;
@@ -14,6 +15,7 @@ public class LinkAction extends JiraAction {
         this.isResolved = isResolved;
         this.summary = summary;
         this.shouldBeUpdated = shouldBeUpdated;
+        this.id = "jitlab" + getUrl().getUrl();
     }
 
     public boolean isResolved() {
@@ -26,5 +28,9 @@ public class LinkAction extends JiraAction {
 
     public boolean isShouldBeUpdated() {
         return shouldBeUpdated;
+    }
+
+    public String getLinkId() {
+        return id;
     }
 }

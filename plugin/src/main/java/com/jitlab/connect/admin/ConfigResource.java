@@ -40,11 +40,13 @@ public class ConfigResource {
     public static final String TOKEN = ".token";
     public static final String USER = ".user";
     public static final String MAPPING = ".mapping";
+    public static final String SEARCH_BY_NAME = ".searchbyname";
     public static final String COMMIT = ".commit";
     public static final String MERGE_OPEN = ".mergeopen";
     public static final String MERGE_REOPEN = ".mergereopen";
     public static final String MERGE_MERGE = ".mergemerge";
     public static final String MERGE_CLOSE = ".mergeclose";
+    public static final String MERGE_APPROVE = ".mergeapprove";
     public static final String IS_ALL_ISSUES = ".isallissues";
     public static final String IS_LINK_COMMIT = ".islinkcommit";
     public static final String IS_LINK_MERGE = ".islinkmerge";
@@ -74,11 +76,13 @@ public class ConfigResource {
                 config.setToken((String) Utility.getOrDefault(settings, TOKEN, ""));
                 config.setUser((String) Utility.getOrDefault(settings, USER, ""));
                 config.setMapping((String) Utility.getOrDefault(settings, MAPPING, ""));
+                config.setSearchByName((String) Utility.getOrDefault(settings, SEARCH_BY_NAME, "0"));
                 config.setCommit((String) Utility.getOrDefault(settings, COMMIT, "0"));
                 config.setMergeOpen((String) Utility.getOrDefault(settings, MERGE_OPEN, "0"));
                 config.setMergeReopen((String) Utility.getOrDefault(settings, MERGE_REOPEN, "0"));
                 config.setMergeMerge((String) Utility.getOrDefault(settings, MERGE_MERGE, "0"));
                 config.setMergeClose((String) Utility.getOrDefault(settings, MERGE_CLOSE, "0"));
+                config.setMergeApprove((String) Utility.getOrDefault(settings, MERGE_APPROVE, "0"));
                 config.setAllIssues((String) Utility.getOrDefault(settings, IS_ALL_ISSUES, "0"));
                 config.setLinkCommit((String) Utility.getOrDefault(settings, IS_LINK_COMMIT, "0"));
                 config.setLinkMerge((String) Utility.getOrDefault(settings, IS_LINK_MERGE, "0"));
@@ -98,7 +102,7 @@ public class ConfigResource {
         }
 
         //token
-        if ((config.getToken() == null) || (!Pattern.matches("[a-zA-Z]{20}", config.getToken()))) {
+        if ((config.getToken() == null) || (!Pattern.matches("[a-zA-Z0-9]{20,100}", config.getToken()))) {
             return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.token"))).build();
         }
 
@@ -111,6 +115,11 @@ public class ConfigResource {
         Map<String, String> mapping = null;
         try {
             mapping = Utility.stringToMap(config.getMapping());
+            for (String name : mapping.values()) {
+                if (userManager.getUserProfile(name) == null) {
+                    return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.mapping"))).build();
+                }
+            }
         } catch (Exception ex) {
         }
         if (mapping == null) {
@@ -123,11 +132,13 @@ public class ConfigResource {
                 pluginSettings.put(Config.CONFIG + TOKEN, config.getToken());
                 pluginSettings.put(Config.CONFIG + USER, config.getUser());
                 pluginSettings.put(Config.CONFIG + MAPPING, config.getMapping());
+                pluginSettings.put(Config.CONFIG + SEARCH_BY_NAME, config.getSearchByName());
                 pluginSettings.put(Config.CONFIG + COMMIT, config.getCommit());
                 pluginSettings.put(Config.CONFIG + MERGE_OPEN, config.getMergeOpen());
                 pluginSettings.put(Config.CONFIG + MERGE_REOPEN, config.getMergeReopen());
                 pluginSettings.put(Config.CONFIG + MERGE_MERGE, config.getMergeMerge());
                 pluginSettings.put(Config.CONFIG + MERGE_CLOSE, config.getMergeClose());
+                pluginSettings.put(Config.CONFIG + MERGE_APPROVE, config.getMergeApprove());
                 pluginSettings.put(Config.CONFIG + IS_ALL_ISSUES, config.getAllIssues());
                 pluginSettings.put(Config.CONFIG + IS_LINK_COMMIT, config.getLinkCommit());
                 pluginSettings.put(Config.CONFIG + IS_LINK_MERGE, config.getLinkMerge());

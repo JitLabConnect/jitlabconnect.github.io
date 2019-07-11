@@ -7,10 +7,11 @@ import java.util.List;
 
 public class JitLabRequest {
     public String user;
+    public String userName;
     public List<Action> actions;
 
     public JitLabRequest() {
-        actions = new ArrayList<Action>();
+        actions = new ArrayList<>();
     }
 
     @Override

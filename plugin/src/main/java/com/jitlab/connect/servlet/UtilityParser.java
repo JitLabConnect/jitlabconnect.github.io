@@ -30,6 +30,7 @@ public class UtilityParser {
             JsonObject json = getJsonElement(requestEvent).getAsJsonObject();
 
             request.user = json.getAsJsonObject("user").getAsJsonPrimitive("username").getAsString();
+            request.userName = json.getAsJsonObject("user").getAsJsonPrimitive("name").getAsString();
             String text = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("title").getAsString();
             List<String> issues = Utility.getUniqueArray(pattern, text);
             String state = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("state").getAsString();
@@ -48,22 +49,32 @@ public class UtilityParser {
                 config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_MERGE, "0");
             } else if (type.equals("close")) {
                 config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_CLOSE, "0");
+            } else if (type.equals("approved")) {
+                config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_APPROVE, "0");
             }
 
             Action action = null;
+            String actionName = type.toLowerCase();
+            if (type.substring(Math.max(type.length() - 2, 0)).equalsIgnoreCase("ed")) {
+                // do nothing
+            } else if (type.substring(Math.max(type.length() - 1, 0)).equalsIgnoreCase("e")) {
+                actionName += "d";
+            } else {
+                actionName += "ed";
+            }
+
             if (config.equals("0")) {
                 action = new DoNothingAction();
             } else if (config.equals("1")) {
                 action = new CommentAction(
                         text,
                         aUrl,
-                        i18n.getText("jitlab-connect.text.mergerequest") + " " + i18n.getText("jitlab-connect.text.is") + " " + state,
+                        i18n.getText("jitlab-connect.text.mergerequest") + " " + i18n.getText("jitlab-connect.text.is") + " " + actionName,
                         issues
                 );
             } else if (config.equals("2")) {
-
                 action = new ActivityAction(
-                        state + " " + i18n.getText("jitlab-connect.text.mergerequest").toLowerCase(),
+                        actionName + " " + i18n.getText("jitlab-connect.text.mergerequest").toLowerCase(),
                         text,
                         aUrl,
                         i18n.getText("jitlab-connect.text.mergerequest"),
@@ -100,6 +111,7 @@ public class UtilityParser {
             JsonObject json = getJsonElement(requestEvent).getAsJsonObject();
             String config = (String) Utility.getOrDefault(settings, ConfigResource.COMMIT, "0");
             request.user = json.getAsJsonPrimitive("user_username").getAsString();
+            request.userName = json.getAsJsonPrimitive("user_name").getAsString();
             JsonArray commits = json.getAsJsonArray("commits");
             for (int i = 0; i < commits.size(); i++) {
                 JsonObject commit = (JsonObject) commits.get(i);

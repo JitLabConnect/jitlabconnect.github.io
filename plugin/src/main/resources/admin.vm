@@ -63,6 +63,16 @@
                     <div class="description">$i18n.getText("jitlab-connect.admin.mapping.caption")</div>
                 </div>
 
+                <!-- search by display name -->
+                <div class="field-group">
+                    <label>$i18n.getText("jitlab-connect.admin.searchbyname.label"):</label>
+                    <div class="checkbox">
+                        <input class="checkbox" type="checkbox" name="jitlab-searchbyname" id="jitlab-searchbyname" />
+                        <label for="jitlab-allissues">$i18n.getText("jitlab-connect.admin.searchbyname.caption")</label>
+                    </div>
+                    <div class="description">$i18n.getText("jitlab-connect.admin.searchbyname.caption.caption")</div>
+                </div>
+
                 <h3>$i18n.getText("jitlab-connect.admin.commits")</h3>
 
                 <!-- commit -->
@@ -115,6 +125,14 @@
                 <div class="field-group">
                     <label for="jitlab-merge4">$i18n.getText("jitlab-connect.admin.triggers.merge.label4"):</label>
                     <select class="select" id="jitlab-merge4" name="jitlab-merge4">
+                        <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
+                        <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
+                        <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
+                    </select>
+                </div>
+                <div class="field-group">
+                    <label for="jitlab-merge5">$i18n.getText("jitlab-connect.admin.triggers.merge.label5"):</label>
+                    <select class="select" id="jitlab-merge5" name="jitlab-merge5">
                         <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
                         <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
                         <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>

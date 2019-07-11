@@ -27,11 +27,11 @@ import java.util.List;
 
 public class ActionExecutorImpl implements ActionExecutor {
     private static final Logger log = LoggerFactory.getLogger(ActionExecutorImpl.class);
-    private RemoteIssueLinkService linkService;
-    private CommentService commentService;
-    private ApplicationProperties applicationProperties;
-    private ActivityService activityService;
-    private I18nResolver i18n;
+    private final RemoteIssueLinkService linkService;
+    private final CommentService commentService;
+    private final ApplicationProperties applicationProperties;
+    private final ActivityService activityService;
+    private final I18nResolver i18n;
 
     public ActionExecutorImpl(I18nResolver i18n, CommentService commentService, ActivityService activityService, RemoteIssueLinkService linkService, ApplicationProperties applicationProperties) {
         this.commentService = commentService;
@@ -123,25 +123,30 @@ public class ActionExecutorImpl implements ActionExecutor {
             try {
                 log.debug("Push to JIRA links ({}, {})", issue.getKey(), user.getUsername());
 
-                RemoteIssueLink link = linkService.getRemoteIssueLinkByGlobalId(user, issue, "jitlab" + action.getUrl().getUrl()).getRemoteIssueLink();
+                RemoteIssueLink link = linkService.getRemoteIssueLinkByGlobalId(user, issue, action.getLinkId()).getRemoteIssueLink();
                 if (link == null) {
                     // just for backward compatibility
                     for (RemoteIssueLink link1 : linkService.getRemoteIssueLinksForIssue(user, issue).getRemoteIssueLinks()) {
-                        if (link1.getTitle() != null) {
-                            if (link1.getTitle().equalsIgnoreCase(action.getText())) {
+                        if (link1.getUrl().equalsIgnoreCase(action.getUrl().getUrl())) {
                                 link = link1;
                                 break;
                             }
-                        }
                     }
                 }
 
-                if ((link != null) && !action.isShouldBeUpdated()) return;
+                if ((link != null) && !action.isShouldBeUpdated()) continue;
 
                 if (link != null) {
+                    // check old values
+                    if ((link.isResolved() == action.isResolved())
+                            && (link.getTitle().equalsIgnoreCase(action.getText()))
+                            && (link.getSummary() != null)
+                            && link.getSummary().equalsIgnoreCase(action.getSummary())) continue;
+
                     //  update link
                     RemoteIssueLink updated = new RemoteIssueLinkBuilder(link)
                             .resolved(action.isResolved())
+                            .title(action.getText())
                             .summary(action.getSummary())
                             .build();
 

@@ -25,6 +25,8 @@
             $("#jitlab-merge2").val(config.mergeReopen).change();
             $("#jitlab-merge3").val(config.mergeMerge).change();
             $("#jitlab-merge4").val(config.mergeClose).change();
+            $("#jitlab-merge5").val(config.mergeApprove).change();
+            $("#jitlab-searchbyname").attr('checked', config.searchByName == '1');
             $("#jitlab-allissues").attr('checked', config.allIssues == '1');
             $("#jitlab-link-commit").attr('checked', config.linkCommit == '1');
             $("#jitlab-link-merge").attr('checked', config.linkMerge == '1');
@@ -56,7 +58,7 @@
     }
 
     function validateToken() {
-        if ((new RegExp("^[a-zA-Z]{" + tokenSize + "}$")).test($("#jitlab-token").val())) {
+        if ((new RegExp("^[a-zA-Z0-9]{" + tokenSize + ",100}$")).test($("#jitlab-token").val())) {
             $("#jitlab-token-error").hide();
             return true;
         }
@@ -67,7 +69,7 @@
 
     function generateToken() {
         var result = "";
-        var base = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+        var base = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
         for (var i = 0; i < tokenSize; i++) {
           result += base.charAt(Math.floor(Math.random() * base.length));
@@ -86,6 +88,8 @@
             mergeReopen: AJS.$("#jitlab-merge2").val().trim(),
             mergeMerge: AJS.$("#jitlab-merge3").val().trim(),
             mergeClose: AJS.$("#jitlab-merge4").val().trim(),
+            mergeApprove: AJS.$("#jitlab-merge5").val().trim(),
+            searchByName: (AJS.$("#jitlab-searchbyname").is(':checked'))? "1": "0",
             allIssues: (AJS.$("#jitlab-allissues").is(':checked'))? "1": "0",
             linkCommit: (AJS.$("#jitlab-link-commit").is(':checked'))? "1": "0",
             linkMerge: (AJS.$("#jitlab-link-merge").is(':checked'))? "1": "0"

@@ -3,9 +3,12 @@ package com.jitlab.connect.servlet;
 import com.atlassian.jira.bc.issue.IssueService;
 import com.atlassian.jira.bc.issue.comment.CommentService;
 import com.atlassian.jira.bc.issue.link.RemoteIssueLinkService;
+import com.atlassian.jira.bc.user.search.UserPickerSearchService;
+import com.atlassian.jira.bc.user.search.UserSearchParams;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.MutableIssue;
 import com.atlassian.jira.user.ApplicationUser;
+import com.atlassian.jira.user.UserFilter;
 import com.atlassian.jira.user.util.UserManager;
 import com.atlassian.plugin.spring.scanner.annotation.component.Scanned;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
@@ -25,6 +28,7 @@ import com.jitlab.connect.servlet.entity.actions.DoNothingAction;
 import com.jitlab.connect.servlet.entity.actions.JiraAction;
 import com.jitlab.connect.servlet.executor.ActionExecutor;
 import com.jitlab.connect.servlet.executor.ActionExecutorImpl;
+import com.jitlab.connect.servlet.users.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,11 +41,12 @@ import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @Scanned
 public class JitLabConnect extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(JitLabConnect.class);
+    private final UserExtractor userExtractor;
     @ComponentImport
     private final RemoteIssueLinkService linkService;
     @ComponentImport
@@ -54,6 +59,8 @@ public class JitLabConnect extends HttpServlet {
     private ProjectService projectService;
     @ComponentImport
     private SearchService searchService;*/
+    @ComponentImport
+    private UserPickerSearchService userSearchService;
     @ComponentImport
     private UserManager userManager;
     @ComponentImport
@@ -69,13 +76,16 @@ public class JitLabConnect extends HttpServlet {
     @ComponentImport
     private final I18nResolver i18n;
 
+    private final UserSearchParams userSearchParams = new UserSearchParams(false, true, true, false, (UserFilter) null, (Set) null);
+
     @Inject
     public JitLabConnect(I18nResolver i18n, IssueService issueService,
                          com.atlassian.sal.api.user.UserManager pluginUserManager,
                          CommentService commentService, LoginUriProvider loginUriProvider,
                          TemplateRenderer renderer, PluginSettingsFactory pluginSettingsFactory,
                          ActivityService activityService, RemoteIssueLinkService linkService,
-                         ApplicationProperties applicationProperties) {
+                         ApplicationProperties applicationProperties,
+                         UserPickerSearchService userSearchService) {
         this.i18n = i18n;
         this.issueService = issueService;
         this.userManager = ComponentAccessor.getUserManager();
@@ -87,6 +97,19 @@ public class JitLabConnect extends HttpServlet {
         this.activityService = activityService;
         this.applicationProperties = applicationProperties;
         this.linkService = linkService;
+        this.userSearchService = userSearchService;
+
+        this.userExtractor =
+                new DefautUserExtractor(
+                        this.userManager,
+                        new DisplayNameUserExtractor(
+                                this.userSearchService,
+                                this.userSearchParams,
+                                new MappingUserExtractor(
+                                        this.userManager,
+                                        new NativeUserExtractor(
+                                                this.userManager,
+                                                null))));
     }
 
     @Override
@@ -146,39 +169,25 @@ public class JitLabConnect extends HttpServlet {
 
         for (Action action : request.actions) {
             if (action instanceof JiraAction) {
-                processAction(request.user, (JiraAction) action, settings);
+                processAction(request.user, request.userName, (JiraAction) action, settings);
             } else if (action instanceof DoNothingAction) {
                 log.debug("Do nothing action");
             }
         }
     }
 
-    private void processAction(String requestUser, JiraAction action, PluginSettings settings) {
-        // USER
-        ApplicationUser user = userManager.getUserByName(requestUser);
+    private void processAction(String userName, String displayName, JiraAction action, PluginSettings settings) {
+        ApplicationUser user = userExtractor.getUser(userName, displayName, settings);
         if (user == null) {
-            try {
-                Map<String, String> mapping = Utility.stringToMap((String) Utility.getOrDefault(settings, ConfigResource.MAPPING, ""));
-                user = userManager.getUserByName(mapping.get(requestUser));
-            } catch (Exception ex) {
-                // do nothing
-            }
-
-            if (user == null) {
-                user = userManager.getUserByName((String) Utility.getOrDefault(settings, ConfigResource.USER, ""));
-                if (user == null) {
-                    log.debug("Invalid user name '{}'", requestUser);
-                    return;
-                }
-                log.debug("Use default user : '{}'", user.getUsername());
-            } else {
-                log.debug("Use mapping user : '{}'", user.getUsername());
-            }
+            log.error("Invalid user name '{}'", userName);
+            return;
+        } else {
+            log.debug("Use user : '{}'", user.getUsername());
         }
 
         // USSUES
         if ((action.getIssues() == null) || (action.getIssues().size() == 0)) {
-            log.debug("Issues keys not found for request");
+            log.debug("Issue keys not found for request");
             return;
         }
 
@@ -193,7 +202,7 @@ public class JitLabConnect extends HttpServlet {
     }
 
     private List<MutableIssue> populateIssues(List<String> keys, ApplicationUser user, PluginSettings settings) {
-        List<MutableIssue> issues = new ArrayList<MutableIssue>();
+        List<MutableIssue> issues = new ArrayList<>();
         for (String key : keys) {
             IssueService.IssueResult issue = issueService.getIssue(user, key);
             if ((issue != null) && issue.isValid()) {
