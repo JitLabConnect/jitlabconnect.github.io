@@ -1,34 +1,32 @@
 package com.jitlab.connect.servlet;
 
 import com.atlassian.jira.bc.issue.IssueService;
-import com.atlassian.jira.bc.issue.comment.CommentService;
-import com.atlassian.jira.bc.issue.link.RemoteIssueLinkService;
 import com.atlassian.jira.bc.user.search.UserPickerSearchService;
 import com.atlassian.jira.bc.user.search.UserSearchParams;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.MutableIssue;
 import com.atlassian.jira.user.ApplicationUser;
-import com.atlassian.jira.user.UserFilter;
 import com.atlassian.jira.user.util.UserManager;
 import com.atlassian.plugin.spring.scanner.annotation.component.Scanned;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
-import com.atlassian.sal.api.ApplicationProperties;
 import com.atlassian.sal.api.auth.LoginUriProvider;
-import com.atlassian.sal.api.message.I18nResolver;
-import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.sal.api.user.UserProfile;
-import com.atlassian.streams.thirdparty.api.ActivityService;
 import com.atlassian.templaterenderer.TemplateRenderer;
 import com.jitlab.connect.Utility;
+import com.jitlab.connect.admin.Config;
 import com.jitlab.connect.admin.ConfigResource;
 import com.jitlab.connect.servlet.entity.JitLabRequest;
 import com.jitlab.connect.servlet.entity.actions.Action;
-import com.jitlab.connect.servlet.entity.actions.DoNothingAction;
 import com.jitlab.connect.servlet.entity.actions.JiraAction;
-import com.jitlab.connect.servlet.executor.ActionExecutor;
-import com.jitlab.connect.servlet.executor.ActionExecutorImpl;
+import com.jitlab.connect.servlet.entity.actions.MergeRequest;
+import com.jitlab.connect.servlet.entity.actions.PushRequest;
+import com.jitlab.connect.servlet.executor.ActionVisitor;
+import com.jitlab.connect.servlet.executor.ActivityVisitor;
+import com.jitlab.connect.servlet.executor.CommentVisitor;
+import com.jitlab.connect.servlet.executor.LinkVisitor;
 import com.jitlab.connect.servlet.users.*;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,30 +37,14 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Scanned
 public class JitLabConnect extends HttpServlet {
     private static final Logger log = LoggerFactory.getLogger(JitLabConnect.class);
-    private final UserExtractor userExtractor;
+
     @ComponentImport
-    private final RemoteIssueLinkService linkService;
-    @ComponentImport
-    private final ActivityService activityService;
-    @ComponentImport
-    private CommentService commentService;
-    @ComponentImport
-    private IssueService issueService;
-    /*@ComponentImport
-    private ProjectService projectService;
-    @ComponentImport
-    private SearchService searchService;*/
-    @ComponentImport
-    private UserPickerSearchService userSearchService;
-    @ComponentImport
-    private UserManager userManager;
+    private final IssueService issueService;
     @ComponentImport
     private final com.atlassian.sal.api.user.UserManager pluginUserManager;
     @ComponentImport
@@ -71,45 +53,38 @@ public class JitLabConnect extends HttpServlet {
     private final TemplateRenderer renderer;
     @ComponentImport
     private final PluginSettingsFactory pluginSettingsFactory;
-    @ComponentImport
-    private ApplicationProperties applicationProperties;
-    @ComponentImport
-    private final I18nResolver i18n;
 
-    private final UserSearchParams userSearchParams = new UserSearchParams(false, true, true, false, (UserFilter) null, (Set) null);
+    private final ActivityVisitor activityVisitor;
+    private final CommentVisitor commentVisitor;
+    private final LinkVisitor linkVisitor;
+    private final UserExtractor userExtractor;
 
     @Inject
-    public JitLabConnect(I18nResolver i18n, IssueService issueService,
-                         com.atlassian.sal.api.user.UserManager pluginUserManager,
-                         CommentService commentService, LoginUriProvider loginUriProvider,
-                         TemplateRenderer renderer, PluginSettingsFactory pluginSettingsFactory,
-                         ActivityService activityService, RemoteIssueLinkService linkService,
-                         ApplicationProperties applicationProperties,
-                         UserPickerSearchService userSearchService) {
-        this.i18n = i18n;
+    public JitLabConnect(
+            @ComponentImport IssueService issueService,
+            com.atlassian.sal.api.user.UserManager pluginUserManager,
+            LoginUriProvider loginUriProvider,
+            TemplateRenderer renderer,
+            PluginSettingsFactory pluginSettingsFactory,
+            @ComponentImport UserPickerSearchService userSearchService,
+            ActivityVisitor activityVisitor, CommentVisitor commentVisitor, LinkVisitor linkVisitor) {
         this.issueService = issueService;
-        this.userManager = ComponentAccessor.getUserManager();
+        this.activityVisitor = activityVisitor;
+        this.commentVisitor = commentVisitor;
+        this.linkVisitor = linkVisitor;
         this.pluginUserManager = pluginUserManager;
-        this.commentService = commentService;
         this.loginUriProvider = loginUriProvider;
         this.renderer = renderer;
         this.pluginSettingsFactory = pluginSettingsFactory;
-        this.activityService = activityService;
-        this.applicationProperties = applicationProperties;
-        this.linkService = linkService;
-        this.userSearchService = userSearchService;
+
+        UserSearchParams userSearchParams = new UserSearchParams(false, true, true, false, null, null);
+        UserManager userManager = ComponentAccessor.getUserManager();
 
         this.userExtractor =
-                new DefautUserExtractor(
-                        this.userManager,
-                        new DisplayNameUserExtractor(
-                                this.userSearchService,
-                                this.userSearchParams,
-                                new MappingUserExtractor(
-                                        this.userManager,
-                                        new NativeUserExtractor(
-                                                this.userManager,
-                                                null))));
+                new DefaultUserExtractor(userManager,
+                        new DisplayNameUserExtractor(userSearchService, userSearchParams,
+                                new MappingUserExtractor(userManager,
+                                        new NativeUserExtractor(userManager))));
     }
 
     @Override
@@ -129,12 +104,12 @@ public class JitLabConnect extends HttpServlet {
         response.sendRedirect(loginUriProvider.getLoginUri(Utility.getUri(request)).toASCIIString());
     }
 
-    public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        PluginSettings settings = pluginSettingsFactory.createGlobalSettings();
-        String pluginToken = (String) Utility.getOrDefault(settings, ConfigResource.TOKEN, null);
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        Config settings = ConfigResource.fromPluginSettings(pluginSettingsFactory.createGlobalSettings());
+        String pluginToken = settings.getToken();
 
-        // TOKEN
-        if (pluginToken == null) {
+        // token
+        if (StringUtils.isEmpty(pluginToken)) {
             log.error("Invalid token for JitLab plugin");
             res.sendError(Response.Status.UNAUTHORIZED.getStatusCode());
             return;
@@ -147,67 +122,90 @@ public class JitLabConnect extends HttpServlet {
             return;
         }
 
-        // TRIGGER
-        String requestEvent = req.getHeader("X-Gitlab-Event");
-        JitLabRequest request = null;
-        if ((requestEvent == null)) {
+        // request
+        String requestType = req.getHeader("X-Gitlab-Event");
+        JitLabRequest request;
+        if ((requestType == null)) {
             log.error("Invalid X-Gitlab-Event header");
             res.sendError(Response.Status.BAD_REQUEST.getStatusCode());
             return;
-        } else if (requestEvent.equals("Merge Request Hook")) {
-            request = UtilityParser.getRequestForMerge(Utility.streamToString(req.getReader()), i18n, settings);
-        } else if (requestEvent.equals("Push Hook")) {
-            request = UtilityParser.getRequestForPush(Utility.streamToString(req.getReader()), i18n, settings);
+        } else if (requestType.equalsIgnoreCase("Merge Request Hook")) {
+            request = UtilityParser.getRequestForMerge(Utility.streamToString(req.getReader()));
+        } else if (requestType.equalsIgnoreCase("Push Hook")) {
+            request = UtilityParser.getRequestForPush(Utility.streamToString(req.getReader()));
         } else {
-            log.error("Invalid X-Gitlab-Event header: '{}'", requestEvent);
+            log.error("Invalid X-Gitlab-Event header: '{}'", requestType);
+            res.sendError(Response.Status.BAD_REQUEST.getStatusCode());
             return;
         }
 
-        if (request == null) {
+        if (request == null || request.getActions().isEmpty()) {
             return;
         }
 
-        for (Action action : request.actions) {
-            if (action instanceof JiraAction) {
-                processAction(request.user, request.userName, (JiraAction) action, settings);
-            } else if (action instanceof DoNothingAction) {
-                log.debug("Do nothing action");
-            }
-        }
-    }
-
-    private void processAction(String userName, String displayName, JiraAction action, PluginSettings settings) {
-        ApplicationUser user = userExtractor.getUser(userName, displayName, settings);
+        // user
+        ApplicationUser user = userExtractor.getUser(request.getUser(), request.getUserName(), settings);
         if (user == null) {
-            log.error("Invalid user name '{}'", userName);
+            log.error("Invalid user name '{}'", request.getUser());
             return;
         } else {
             log.debug("Use user : '{}'", user.getUsername());
         }
 
-        // USSUES
-        if ((action.getIssues() == null) || (action.getIssues().size() == 0)) {
+        // processors
+        List<ActionVisitor> processors = new ArrayList<>();
+        Action firstAction = request.getActions().get(0);
+        try {
+            if (firstAction instanceof MergeRequest) {
+                processors.addAll(populateProcessors((MergeRequest) firstAction, settings));
+            } else if (firstAction instanceof PushRequest) {
+                processors.addAll(populateProcessors((PushRequest) firstAction, settings));
+            }
+        } catch (Exception ignored) {
+        }
+
+        // execute
+        Map<String, MutableIssue> issuesHash = new HashMap<>();
+        for (Action action : request.getActions()) {
+            if (action instanceof JiraAction) {
+                processAction(user, (JiraAction) action, settings, processors, issuesHash);
+            }
+        }
+    }
+
+    private void processAction(ApplicationUser user, JiraAction action, Config settings, List<ActionVisitor> processors, Map<String, MutableIssue> issuesHash) {
+        if (action.getIssues().isEmpty()) {
             log.debug("Issue keys not found for request");
             return;
         }
 
-        List<MutableIssue> issues = populateIssues(action.getIssues(), user, settings);
-        if ((issues == null) || issues.isEmpty()) {
+        List<MutableIssue> issues = populateIssues(action.getIssues(), user, issuesHash, settings.getAllIssues().equals("1"));
+        if (issues.isEmpty()) {
             log.error("Issues not found in Jira for request");
             return;
         }
 
-        ActionExecutor executor = new ActionExecutorImpl(i18n, commentService, activityService, linkService, applicationProperties);
-        executor.execute(action, user, issues);
+        for (ActionVisitor processor : processors) {
+            action.process(processor, user, issues);
+        }
     }
 
-    private List<MutableIssue> populateIssues(List<String> keys, ApplicationUser user, PluginSettings settings) {
+    private List<MutableIssue> populateIssues(Set<String> keys, ApplicationUser user, Map<String, MutableIssue> issuesHash, boolean isAllIssues) {
         List<MutableIssue> issues = new ArrayList<>();
         for (String key : keys) {
+            if (issuesHash.containsKey(key)) {
+                issues.add(issuesHash.get(key));
+                if (!isAllIssues) {
+                    return issues;
+                }
+                continue;
+            }
+
             IssueService.IssueResult issue = issueService.getIssue(user, key);
             if ((issue != null) && issue.isValid()) {
                 issues.add(issue.getIssue());
-                if (Utility.getOrDefault(settings, ConfigResource.IS_ALL_ISSUES, "0").equals("0")) {
+                issuesHash.put(key, issue.getIssue());
+                if (!isAllIssues) {
                     return issues;
                 }
             } else {
@@ -217,4 +215,51 @@ public class JitLabConnect extends HttpServlet {
         return issues;
     }
 
+    private List<ActionVisitor> populateProcessors(MergeRequest mergeRequest, Config settings) {
+        List<ActionVisitor> processors = new ArrayList<>();
+        String action = mergeRequest.getEvent();
+        String config = "0";
+        if (action.equalsIgnoreCase("opened")) {
+            config = settings.getMergeOpen();
+        } else if (action.equalsIgnoreCase("reopened")) {
+            config = settings.getMergeReopen();
+        } else if (action.equalsIgnoreCase("merged")) {
+            config = settings.getMergeMerge();
+        } else if (action.equalsIgnoreCase("closed")) {
+            config = settings.getMergeClose();
+        } else if (action.equalsIgnoreCase("approved")) {
+            config = settings.getMergeApprove();
+        }
+
+        if (config.equals("1")) {
+            processors.add(commentVisitor);
+        } else if (config.equals("2")) {
+            processors.add(activityVisitor);
+        }
+
+        // link to issue
+        String link = settings.getLinkMerge();
+        if (link.equals("1")) {
+            processors.add(linkVisitor);
+        }
+
+        return processors;
+    }
+
+    private List<ActionVisitor> populateProcessors(PushRequest pushRequest, Config settings) {
+        List<ActionVisitor> processors = new ArrayList<>();
+        String config = settings.getCommit();
+        if (config.equals("1")) {
+            processors.add(commentVisitor);
+        } else if (config.equals("2")) {
+            processors.add(activityVisitor);
+        }
+
+        // link to issue
+        String link = settings.getLinkCommit();
+        if (link.equals("1")) {
+            processors.add(linkVisitor);
+        }
+        return processors;
+    }
 }

@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>$i18n.getText("jitlab-connect.admin.label")</title>
+        <message>$i18n.getText("jitlab-connect.admin.label")</message>
         <meta name="decorator" content="atl.admin" />
         $webResourceManager.requireResource("com.jitlab.plugin:jitlab-connect-resources")
         $webResourceManager.requireResource("com.atlassian.auiplugin:aui-flag")
@@ -9,7 +9,7 @@
         <form class="aui" id="jitlab-admin">
             <div id="jitlab-messages"></div>
             <div class="aui-message aui-message-hint">
-                <p class="title">
+                <p class="message">
                     <strong>$i18n.getText("jitlab-connect.admin.url.label")
                         <font id="jitlab-url"></font>
                     </strong>

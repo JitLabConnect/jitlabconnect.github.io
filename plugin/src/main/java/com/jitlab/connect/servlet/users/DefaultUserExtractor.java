@@ -6,14 +6,14 @@ import com.jitlab.connect.admin.Config;
 
 import javax.annotation.Nullable;
 
-public class NativeUserExtractor extends AbstractUserExtractor {
+public class DefaultUserExtractor extends AbstractUserExtractor {
     private UserManager userManager;
 
-    public NativeUserExtractor(UserManager userManager) {
+    public DefaultUserExtractor(UserManager userManager) {
         this.userManager = userManager;
     }
 
-    public NativeUserExtractor(UserManager userManager, UserExtractor internalExtractor) {
+    public DefaultUserExtractor(UserManager userManager, UserExtractor internalExtractor) {
         super(internalExtractor);
         this.userManager = userManager;
     }
@@ -21,6 +21,6 @@ public class NativeUserExtractor extends AbstractUserExtractor {
     @Nullable
     @Override
     protected ApplicationUser doGetUser(String userName, String displayName, Config pluginSettings) {
-        return userManager.getUserByName(userName);
+        return userManager.getUserByName(pluginSettings.getUser());
     }
 }

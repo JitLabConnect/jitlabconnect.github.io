@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jitlab</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.0.11</version>
+    <version>1.0.12</version>
     <organization>
         <name>Kirill Shashov</name>
         <url>https://jitlabconnect.github.io/</url>
@@ -193,21 +193,23 @@
                         </pluginArtifact>
                     </pluginArtifacts>
                     -->
-                    <!--<enableQuickReload>true</enableQuickReload>
-                    <enableFastdev>false</enableFastdev>-->
                     <!-- See here for an explanation of default instructions: -->
                     <!-- https://developer.atlassian.com/docs/advanced-topics/configuration-of-instructions-in-atlassian-plugins -->
                     <instructions>
+                        <Spring-Context>*</Spring-Context>
                         <Atlassian-Plugin-Key>${atlassian.plugin.key}</Atlassian-Plugin-Key>
                         <!-- Add package to export here -->
                         <Export-Package>com.jitlab.jitlab-connect.api,</Export-Package>
                         <!-- Add package import here -->
                         <Import-Package>org.springframework.osgi.*;resolution:="optional",
-                            org.eclipse.gemini.blueprint.*;resolution:="optional", *
+                            org.eclipse.gemini.blueprint.*;resolution:="optional",
+                            com.atlassian.plugin.osgi.bridge.external,
+                            *;resolution:=optional
                         </Import-Package>
                         <!-- Ensure plugin is spring powered -->
                         <Spring-Context>*</Spring-Context>
                     </instructions>
+                    <skipManifestValidation>true</skipManifestValidation>
                 </configuration>
             </plugin>
             <plugin>
@@ -223,6 +225,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <includeExclude>-com.atlassian.plugin.spring.scanner.annotation.*</includeExclude>
                     <scannedDependencies>
                         <dependency>
                             <groupId>com.atlassian.plugin</groupId>

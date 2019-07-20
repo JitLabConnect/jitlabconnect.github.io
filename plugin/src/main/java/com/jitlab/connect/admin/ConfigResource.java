@@ -68,29 +68,13 @@ public class ConfigResource {
             return Response.status(Status.UNAUTHORIZED).build();
         }
 
-        return Response.ok(transactionTemplate.execute(new TransactionCallback() {
+        return Response.ok(transactionTemplate.execute(new TransactionCallback<Object>() {
+            @Override
             public Object doInTransaction() {
-                PluginSettings settings = pluginSettingsFactory.createGlobalSettings();
-                Config config = new Config();
-
-                config.setToken((String) Utility.getOrDefault(settings, TOKEN, ""));
-                config.setUser((String) Utility.getOrDefault(settings, USER, ""));
-                config.setMapping((String) Utility.getOrDefault(settings, MAPPING, ""));
-                config.setSearchByName((String) Utility.getOrDefault(settings, SEARCH_BY_NAME, "0"));
-                config.setCommit((String) Utility.getOrDefault(settings, COMMIT, "0"));
-                config.setMergeOpen((String) Utility.getOrDefault(settings, MERGE_OPEN, "0"));
-                config.setMergeReopen((String) Utility.getOrDefault(settings, MERGE_REOPEN, "0"));
-                config.setMergeMerge((String) Utility.getOrDefault(settings, MERGE_MERGE, "0"));
-                config.setMergeClose((String) Utility.getOrDefault(settings, MERGE_CLOSE, "0"));
-                config.setMergeApprove((String) Utility.getOrDefault(settings, MERGE_APPROVE, "0"));
-                config.setAllIssues((String) Utility.getOrDefault(settings, IS_ALL_ISSUES, "0"));
-                config.setLinkCommit((String) Utility.getOrDefault(settings, IS_LINK_COMMIT, "0"));
-                config.setLinkMerge((String) Utility.getOrDefault(settings, IS_LINK_MERGE, "0"));
-                return config;
+                return fromPluginSettings(pluginSettingsFactory.createGlobalSettings());
             }
         })).build();
     }
-
 
     @PUT
     @Produces(MediaType.APPLICATION_JSON)
@@ -114,7 +98,7 @@ public class ConfigResource {
         // mapping
         Map<String, String> mapping = null;
         try {
-            mapping = Utility.stringToMap(config.getMapping());
+            mapping = Utility.stringToMap(config.getMapping(), true);
             for (String name : mapping.values()) {
                 if (userManager.getUserProfile(name) == null) {
                     return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.mapping"))).build();
@@ -126,7 +110,8 @@ public class ConfigResource {
             return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.mapping"))).build();
         }
 
-        transactionTemplate.execute(new TransactionCallback() {
+        transactionTemplate.execute(new TransactionCallback<Object>() {
+            @Override
             public Object doInTransaction() {
                 PluginSettings pluginSettings = pluginSettingsFactory.createGlobalSettings();
                 pluginSettings.put(Config.CONFIG + TOKEN, config.getToken());
@@ -147,6 +132,25 @@ public class ConfigResource {
         });
 
         return Response.ok(UpdatingResponse.ok(i18n.getText("jitlab-connect.admin.response.ok"))).build();
+    }
+
+    public static Config fromPluginSettings(PluginSettings settings) {
+        Config config = new Config();
+
+        config.setToken((String) Utility.getOrDefault(settings, TOKEN, ""));
+        config.setUser((String) Utility.getOrDefault(settings, USER, ""));
+        config.setMapping((String) Utility.getOrDefault(settings, MAPPING, ""));
+        config.setSearchByName((String) Utility.getOrDefault(settings, SEARCH_BY_NAME, "0"));
+        config.setCommit((String) Utility.getOrDefault(settings, COMMIT, "0"));
+        config.setMergeOpen((String) Utility.getOrDefault(settings, MERGE_OPEN, "0"));
+        config.setMergeReopen((String) Utility.getOrDefault(settings, MERGE_REOPEN, "0"));
+        config.setMergeMerge((String) Utility.getOrDefault(settings, MERGE_MERGE, "0"));
+        config.setMergeClose((String) Utility.getOrDefault(settings, MERGE_CLOSE, "0"));
+        config.setMergeApprove((String) Utility.getOrDefault(settings, MERGE_APPROVE, "0"));
+        config.setAllIssues((String) Utility.getOrDefault(settings, IS_ALL_ISSUES, "0"));
+        config.setLinkCommit((String) Utility.getOrDefault(settings, IS_LINK_COMMIT, "0"));
+        config.setLinkMerge((String) Utility.getOrDefault(settings, IS_LINK_MERGE, "0"));
+        return config;
     }
 
     @XmlRootElement

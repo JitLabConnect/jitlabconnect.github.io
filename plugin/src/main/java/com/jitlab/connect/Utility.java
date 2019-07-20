@@ -2,6 +2,7 @@ package com.jitlab.connect;
 
 import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.jitlab.connect.admin.Config;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
@@ -10,7 +11,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,21 +57,27 @@ public class Utility {
         return stringBuilder.toString();
     }
 
-    public static Map<String, String> stringToMap(String input) throws UnsupportedEncodingException {
-        Map<String, String> map = new HashMap<String, String>();
-        if (input.equals("")) {
+    public static Map<String, String> stringToMap(String input, boolean validate) {
+        Map<String, String> map = new HashMap<>();
+        if (StringUtils.isEmpty(input)) {
             return map;
         }
 
-        String[] nameValuePairs = input.split(";");
-        for (String nameValuePair : nameValuePairs) {
-            String[] nameValue = nameValuePair.split(",");
-            String key = URLDecoder.decode(nameValue[0], "UTF-8");
-            String value = URLDecoder.decode(nameValue[1], "UTF-8");
-            if (key.equals("") || value.equals("")) {
-                throw new RuntimeException();
+        try {
+            String[] nameValuePairs = input.split(";");
+            for (String nameValuePair : nameValuePairs) {
+                String[] nameValue = nameValuePair.split(",");
+                String key = URLDecoder.decode(nameValue[0], "UTF-8");
+                String value = URLDecoder.decode(nameValue[1], "UTF-8");
+                if (key.equals("") || value.equals("")) {
+                    throw new RuntimeException();
+                }
+                map.put(key, value);
             }
-            map.put(key, value);
+        } catch (Exception ignored) {
+            if (validate) {
+                throw new IllegalArgumentException();
+            }
         }
 
         return map;
@@ -78,12 +88,25 @@ public class Utility {
         return (v != null) ? v : value;
     }
 
-    public static List<String> getUniqueArray(Pattern tagMatcher, String str) {
+    public static Set<String> getUniqueArray(Pattern tagMatcher, String str) {
         Matcher m = tagMatcher.matcher(str);
-        HashSet<String> set = new HashSet<String>();
+        HashSet<String> set = new HashSet<>();
         while (m.find()) {
             set.add(m.group());
         }
-        return new ArrayList<String>(set);
+        return set;
+    }
+
+    public static String getPastForm(String verb) {
+        verb = verb.toLowerCase();
+        if (verb.substring(Math.max(verb.length() - 2, 0)).equalsIgnoreCase("ed")) {
+            // do nothing
+        } else if (verb.substring(Math.max(verb.length() - 1, 0)).equalsIgnoreCase("e")) {
+            verb += "d";
+        } else {
+            verb += "ed";
+        }
+
+        return verb;
     }
 }

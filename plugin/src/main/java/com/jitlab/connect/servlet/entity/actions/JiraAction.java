@@ -2,34 +2,22 @@ package com.jitlab.connect.servlet.entity.actions;
 
 import com.jitlab.connect.servlet.entity.AdaptiveUrl;
 
-import java.util.List;
+import java.util.Set;
 
-public class JiraAction implements Action {
-    private String text;
+public abstract class JiraAction implements Action {
     private AdaptiveUrl url;
-    private String action;
-    public List<String> issues;
+    public Set<String> issues;
 
-    protected JiraAction(String text, AdaptiveUrl url, String action, List<String> issues) {
-        this.text = text;
+    protected JiraAction(AdaptiveUrl url, Set<String> issues) {
         this.url = url;
-        this.action = action;
         this.issues = issues;
-    }
-
-    public String getText() {
-        return text;
     }
 
     public AdaptiveUrl getUrl() {
         return url;
     }
 
-    public String getAction() {
-        return action;
-    }
-
-    public List<String> getIssues() {
+    public Set<String> getIssues() {
         return issues;
     }
 }

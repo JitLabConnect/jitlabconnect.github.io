@@ -1,159 +1,80 @@
 package com.jitlab.connect.servlet;
 
-import com.atlassian.sal.api.message.I18nResolver;
-import com.atlassian.sal.api.pluginsettings.PluginSettings;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.stream.JsonReader;
 import com.jitlab.connect.Utility;
-import com.jitlab.connect.admin.ConfigResource;
 import com.jitlab.connect.servlet.entity.AdaptiveUrl;
 import com.jitlab.connect.servlet.entity.JitLabRequest;
-import com.jitlab.connect.servlet.entity.actions.*;
+import com.jitlab.connect.servlet.entity.actions.MergeRequest;
+import com.jitlab.connect.servlet.entity.actions.PushRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringReader;
-import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class UtilityParser {
     private static final Logger log = LoggerFactory.getLogger(JitLabConnect.class);
     private static final Pattern pattern = Pattern.compile("((?<!([A-Za-z]{1,10})-?)[A-Z]+-\\d+)");
 
-    public static JitLabRequest getRequestForMerge(String requestEvent, I18nResolver i18n, PluginSettings settings) {
-        JitLabRequest request = new JitLabRequest();
-
+    public static JitLabRequest getRequestForMerge(String requestBody) {
         try {
-            JsonObject json = getJsonElement(requestEvent).getAsJsonObject();
+            JsonObject json = getJsonElement(requestBody).getAsJsonObject();
 
-            request.user = json.getAsJsonObject("user").getAsJsonPrimitive("username").getAsString();
-            request.userName = json.getAsJsonObject("user").getAsJsonPrimitive("name").getAsString();
-            String text = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("title").getAsString();
-            List<String> issues = Utility.getUniqueArray(pattern, text);
-            String state = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("state").getAsString();
+            String user = json.getAsJsonObject("user").getAsJsonPrimitive("username").getAsString();
+            String userName = json.getAsJsonObject("user").getAsJsonPrimitive("name").getAsString();
+            JitLabRequest request = new JitLabRequest(user, userName);
+
             String id = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("id").getAsString();
+            String title = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("title").getAsString();
+            String description = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("description").getAsString();
+            String state = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("state").getAsString();
+            String action = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("action").getAsString();
             String url = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("url").getAsString();
+
             AdaptiveUrl aUrl = new AdaptiveUrl(id, url);
-            String type = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("action").getAsString();
+            Set<String> issues = Utility.getUniqueArray(pattern, title);
+            String actionName = Utility.getPastForm(action);
 
-            // setup action
-            String config = "0";
-            if (type.equals("open")) {
-                config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_OPEN, "0");
-            } else if (type.equals("reopen")) {
-                config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_REOPEN, "0");
-            } else if (type.equals("merge")) {
-                config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_MERGE, "0");
-            } else if (type.equals("close")) {
-                config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_CLOSE, "0");
-            } else if (type.equals("approved")) {
-                config = (String) Utility.getOrDefault(settings, ConfigResource.MERGE_APPROVE, "0");
-            }
+            request.getActions().add(new MergeRequest(aUrl, issues, title, description, actionName, state));
 
-            Action action = null;
-            String actionName = type.toLowerCase();
-            if (type.substring(Math.max(type.length() - 2, 0)).equalsIgnoreCase("ed")) {
-                // do nothing
-            } else if (type.substring(Math.max(type.length() - 1, 0)).equalsIgnoreCase("e")) {
-                actionName += "d";
-            } else {
-                actionName += "ed";
-            }
-
-            if (config.equals("0")) {
-                action = new DoNothingAction();
-            } else if (config.equals("1")) {
-                action = new CommentAction(
-                        text,
-                        aUrl,
-                        i18n.getText("jitlab-connect.text.mergerequest") + " " + i18n.getText("jitlab-connect.text.is") + " " + actionName,
-                        issues
-                );
-            } else if (config.equals("2")) {
-                action = new ActivityAction(
-                        actionName + " " + i18n.getText("jitlab-connect.text.mergerequest").toLowerCase(),
-                        text,
-                        aUrl,
-                        i18n.getText("jitlab-connect.text.mergerequest"),
-                        issues
-                );
-            }
-            request.actions.add(action);
-
-            // link to issue
-            String link = (String) Utility.getOrDefault(settings, ConfigResource.IS_LINK_MERGE, "0");
-            if (link.equals("1")) {
-                request.actions.add(new LinkAction(
-                        i18n.getText("jitlab-connect.text.mergerequest") + " " + aUrl.getId(),
-                        aUrl,
-                        aUrl.getId(),
-                        issues,
-                        !state.equals("opened"),
-                        "is " + state,
-                        true));
-            }
+            return request;
         } catch (Exception e) {
             log.debug("Parsing error: {}", e.getMessage());
             return null;
         }
-
-        return request;
     }
 
-
-    public static JitLabRequest getRequestForPush(String requestEvent, I18nResolver i18n, PluginSettings settings) {
-        JitLabRequest request = new JitLabRequest();
-
+    public static JitLabRequest getRequestForPush(String requestBody) {
         try {
-            JsonObject json = getJsonElement(requestEvent).getAsJsonObject();
-            String config = (String) Utility.getOrDefault(settings, ConfigResource.COMMIT, "0");
-            request.user = json.getAsJsonPrimitive("user_username").getAsString();
-            request.userName = json.getAsJsonPrimitive("user_name").getAsString();
+            JsonObject json = getJsonElement(requestBody).getAsJsonObject();
+            String user = json.getAsJsonPrimitive("user_username").getAsString();
+            String userName = json.getAsJsonPrimitive("user_name").getAsString();
+
+            JitLabRequest request = new JitLabRequest(user, userName);
+
             JsonArray commits = json.getAsJsonArray("commits");
             for (int i = 0; i < commits.size(); i++) {
                 JsonObject commit = (JsonObject) commits.get(i);
                 String id = commit.getAsJsonPrimitive("id").getAsString();
                 String url = commit.getAsJsonPrimitive("url").getAsString();
-                AdaptiveUrl aUrl = new AdaptiveUrl(id, url);
                 String text = commit.getAsJsonPrimitive("message").getAsString();
-                List<String> issues = Utility.getUniqueArray(pattern, text);
 
-                Action action = null;
-                if (config.equals("0")) {
-                    action = new DoNothingAction();
-                } else if (config.equals("1")) {
-                    action = new CommentAction(
-                            text,
-                            aUrl,
-                            i18n.getText("jitlab-connect.text.changeset"),
-                            issues
-                    );
-                } else if (config.equals("2")) {
-                    action = new ActivityAction(
-                            i18n.getText("jitlab-connect.text.pushedchangeset").toLowerCase(),
-                            text,
-                            aUrl,
-                            i18n.getText("jitlab-connect.text.changeset"),
-                            issues
-                    );
-                }
-                request.actions.add(action);
+                AdaptiveUrl aUrl = new AdaptiveUrl(id, url);
+                Set<String> issues = Utility.getUniqueArray(pattern, text);
 
-                // link to issue
-                String link = (String) Utility.getOrDefault(settings, ConfigResource.IS_LINK_COMMIT, "0");
-                if (link.equals("1")) {
-                    request.actions.add(new LinkAction(i18n.getText("jitlab-connect.text.changeset") + " " + aUrl.getId(), aUrl, aUrl.getId(), issues, true, "", false));
-                }
+                request.getActions().add(new PushRequest(aUrl, issues, text));
             }
+
+            return request;
         } catch (Exception e) {
             log.debug("Parsing error: {}", e.getMessage());
             return null;
         }
-
-        return request;
     }
 
     private static JsonElement getJsonElement(String request) {
