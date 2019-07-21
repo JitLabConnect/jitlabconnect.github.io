@@ -1,6 +1,6 @@
 <html>
     <head>
-        <message>$i18n.getText("jitlab-connect.admin.label")</message>
+        <title>$i18n.getText("jitlab-connect.admin.label")</title>
         <meta name="decorator" content="atl.admin" />
         $webResourceManager.requireResource("com.jitlab.plugin:jitlab-connect-resources")
         $webResourceManager.requireResource("com.atlassian.auiplugin:aui-flag")
@@ -9,7 +9,7 @@
         <form class="aui" id="jitlab-admin">
             <div id="jitlab-messages"></div>
             <div class="aui-message aui-message-hint">
-                <p class="message">
+                <p class="title">
                     <strong>$i18n.getText("jitlab-connect.admin.url.label")
                         <font id="jitlab-url"></font>
                     </strong>
@@ -48,18 +48,11 @@
 
                 <h3>$i18n.getText("jitlab-connect.admin.users")</h3>
 
-                <!-- default user -->
-                <div class="field-group">
-                    <label for="user">$i18n.getText("jitlab-connect.admin.user.label"):</label>
-                    <input name="user" class="text" id="jitlab-user" type="text" />
-                    <div class="description">$i18n.getText("jitlab-connect.admin.user.caption")</div>
-                </div>
-
                 <!-- mapping -->
                 <div class="field-group">
                     <label for="mapping">$i18n.getText("jitlab-connect.admin.mapping.label"):</label>
                     <textarea name="mapping" class="textarea" id="jitlab-mapping"
-                        placeholder="GitLabName,JiraName;.."></textarea>
+                        placeholder="$i18n.getText('jitlab-connect.admin.mapping.placeholder')"></textarea>
                     <div class="description">$i18n.getText("jitlab-connect.admin.mapping.caption")</div>
                 </div>
 
@@ -73,6 +66,13 @@
                     <div class="description">$i18n.getText("jitlab-connect.admin.searchbyname.caption.caption")</div>
                 </div>
 
+                <!-- default user -->
+                <div class="field-group">
+                    <label for="user">$i18n.getText("jitlab-connect.admin.user.label"):</label>
+                    <input name="user" class="text" id="jitlab-user" type="text" />
+                    <div class="description">$i18n.getText("jitlab-connect.admin.user.caption")</div>
+                </div>
+
                 <h3>$i18n.getText("jitlab-connect.admin.commits")</h3>
 
                 <!-- commit -->
@@ -83,7 +83,16 @@
                         <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
                         <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
                     </select>
-
+                </div>
+                <div class="field-group">
+                    <input name="jitlab-commit-transitions" class="text" id="jitlab-commit-transitions" type="text"
+                        placeholder="$i18n.getText('jitlab-connect.admin.transitions.placeholder')" />
+                    <span class="aui-icon icon-inline-help">
+                        <span>Help</span>
+                    </span>
+                    <span class="field-help hidden">$i18n.getText("jitlab-connect.admin.transitions.help")</span>
+                </div>
+                <div class="field-group">
                     <div class="description">$i18n.getText("jitlab-connect.admin.triggers.commit.caption")</div>
                 </div>
 
@@ -107,12 +116,28 @@
                     </select>
                 </div>
                 <div class="field-group">
+                    <input name="jitlab-merge1-transitions" class="text" id="jitlab-merge1-transitions" type="text"
+                        placeholder="$i18n.getText('jitlab-connect.admin.transitions.placeholder')" />
+                    <span class="aui-icon icon-inline-help">
+                        <span>Help</span>
+                    </span>
+                    <span class="field-help hidden">$i18n.getText("jitlab-connect.admin.transitions.help")</span>
+                </div>
+                <div class="field-group">
                     <label for="jitlab-merge2">$i18n.getText("jitlab-connect.admin.triggers.merge.label2"):</label>
                     <select class="select" id="jitlab-merge2" name="jitlab-merge2">
                         <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
                         <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
                         <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
                     </select>
+                </div>
+                <div class="field-group">
+                    <input name="jitlab-merge2-transitions" class="text" id="jitlab-merge2-transitions" type="text"
+                        placeholder="$i18n.getText('jitlab-connect.admin.transitions.placeholder')" />
+                    <span class="aui-icon icon-inline-help">
+                        <span>Help</span>
+                    </span>
+                    <span class="field-help hidden">$i18n.getText("jitlab-connect.admin.transitions.help")</span>
                 </div>
                 <div class="field-group">
                     <label for="jitlab-merge3">$i18n.getText("jitlab-connect.admin.triggers.merge.label3"):</label>
@@ -123,6 +148,14 @@
                     </select>
                 </div>
                 <div class="field-group">
+                    <input name="jitlab-merge3-transitions" class="text" id="jitlab-merge3-transitions" type="text"
+                        placeholder="$i18n.getText('jitlab-connect.admin.transitions.placeholder')" />
+                    <span class="aui-icon icon-inline-help">
+                        <span>Help</span>
+                    </span>
+                    <span class="field-help hidden">$i18n.getText("jitlab-connect.admin.transitions.help")</span>
+                </div>
+                <div class="field-group">
                     <label for="jitlab-merge4">$i18n.getText("jitlab-connect.admin.triggers.merge.label4"):</label>
                     <select class="select" id="jitlab-merge4" name="jitlab-merge4">
                         <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
@@ -131,12 +164,28 @@
                     </select>
                 </div>
                 <div class="field-group">
+                    <input name="jitlab-merge4-transitions" class="text" id="jitlab-merge4-transitions" type="text"
+                        placeholder="$i18n.getText('jitlab-connect.admin.transitions.placeholder')" />
+                    <span class="aui-icon icon-inline-help">
+                        <span>Help</span>
+                    </span>
+                    <span class="field-help hidden">$i18n.getText("jitlab-connect.admin.transitions.help")</span>
+                </div>
+                <div class="field-group">
                     <label for="jitlab-merge5">$i18n.getText("jitlab-connect.admin.triggers.merge.label5"):</label>
                     <select class="select" id="jitlab-merge5" name="jitlab-merge5">
                         <option value="0">$i18n.getText("jitlab-connect.admin.actions.nothing")</option>
                         <option value="1">$i18n.getText("jitlab-connect.admin.actions.comment")</option>
                         <option value="2">$i18n.getText("jitlab-connect.admin.actions.activity")</option>
                     </select>
+                </div>
+                <div class="field-group">
+                    <input name="jitlab-merge5-transitions" class="text" id="jitlab-merge5-transitions" type="text"
+                        placeholder="$i18n.getText('jitlab-connect.admin.transitions.placeholder')" />
+                    <span class="aui-icon icon-inline-help">
+                        <span>Help</span>
+                    </span>
+                    <span class="field-help hidden">$i18n.getText("jitlab-connect.admin.transitions.help")</span>
                     <div class="description">$i18n.getText("jitlab-connect.admin.triggers.merge.caption")</div>
                 </div>
 

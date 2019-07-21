@@ -28,6 +28,9 @@ import java.util.regex.Pattern;
 @Path("/")
 @Scanned
 public class ConfigResource {
+    private static final Pattern integersListPattern = Pattern.compile("^\\d+(;\\d+)*(;)?$");
+    private static final Pattern mapPattern = Pattern.compile("^([^,;]+,[^,;]+)+(;([^,;]+,[^,;]+))*(;)?$");
+
     @ComponentImport
     private final UserManager userManager;
     @ComponentImport
@@ -47,6 +50,12 @@ public class ConfigResource {
     public static final String MERGE_MERGE = ".mergemerge";
     public static final String MERGE_CLOSE = ".mergeclose";
     public static final String MERGE_APPROVE = ".mergeapprove";
+    public static final String COMMIT_TRANSITIONS = ".committransitions";
+    public static final String MERGE_OPEN_TRANSITIONS = ".mergeopentransitions";
+    public static final String MERGE_REOPEN_TRANSITIONS = ".mergereopentransitions";
+    public static final String MERGE_MERGE_TRANSITIONS = ".mergemergetransitions";
+    public static final String MERGE_CLOSE_TRANSITIONS = ".mergeclosetransitions";
+    public static final String MERGE_APPROVE_TRANSITIONS = ".mergeapprovetransitions";
     public static final String IS_ALL_ISSUES = ".isallissues";
     public static final String IS_LINK_COMMIT = ".islinkcommit";
     public static final String IS_LINK_MERGE = ".islinkmerge";
@@ -92,22 +101,28 @@ public class ConfigResource {
 
         // default user
         if ((!config.getUser().equals("")) && userManager.getUserProfile(config.getUser()) == null) {
-            return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.user"))).build();
+            return Response.ok(UpdatingResponse.error(String.format(i18n.getText("jitlab-connect.admin.response.error.user"), config.getUser()))).build();
         }
 
         // mapping
-        Map<String, String> mapping = null;
-        try {
-            mapping = Utility.stringToMap(config.getMapping(), true);
-            for (String name : mapping.values()) {
-                if (userManager.getUserProfile(name) == null) {
-                    return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.mapping"))).build();
-                }
-            }
-        } catch (Exception ex) {
-        }
-        if (mapping == null) {
+        if (!Utility.validateOrBlank(mapPattern, config.getMapping())) {
             return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.mapping"))).build();
+        }
+        Map<String, String> mapping = Utility.stringToMap(config.getMapping());
+        for (String name : mapping.values()) {
+            if (userManager.getUserProfile(name) == null) {
+                return Response.ok(UpdatingResponse.error(String.format(i18n.getText("jitlab-connect.admin.response.error.mapping.user"), name))).build();
+            }
+        }
+
+        // transitions
+        if (!Utility.validateOrBlank(integersListPattern, config.getCommitTransitions())
+                || !Utility.validateOrBlank(integersListPattern, config.getMergeApproveTransitions())
+                || !Utility.validateOrBlank(integersListPattern, config.getMergeCloseTransitions())
+                || !Utility.validateOrBlank(integersListPattern, config.getMergeMergeTransitions())
+                || !Utility.validateOrBlank(integersListPattern, config.getMergeOpenTransitions())
+                || !Utility.validateOrBlank(integersListPattern, config.getMergeReopenTransitions())) {
+            return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.transitions"))).build();
         }
 
         transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -116,7 +131,7 @@ public class ConfigResource {
                 PluginSettings pluginSettings = pluginSettingsFactory.createGlobalSettings();
                 pluginSettings.put(Config.CONFIG + TOKEN, config.getToken());
                 pluginSettings.put(Config.CONFIG + USER, config.getUser());
-                pluginSettings.put(Config.CONFIG + MAPPING, config.getMapping());
+                pluginSettings.put(Config.CONFIG + MAPPING, config.getMapping().trim());
                 pluginSettings.put(Config.CONFIG + SEARCH_BY_NAME, config.getSearchByName());
                 pluginSettings.put(Config.CONFIG + COMMIT, config.getCommit());
                 pluginSettings.put(Config.CONFIG + MERGE_OPEN, config.getMergeOpen());
@@ -124,6 +139,12 @@ public class ConfigResource {
                 pluginSettings.put(Config.CONFIG + MERGE_MERGE, config.getMergeMerge());
                 pluginSettings.put(Config.CONFIG + MERGE_CLOSE, config.getMergeClose());
                 pluginSettings.put(Config.CONFIG + MERGE_APPROVE, config.getMergeApprove());
+                pluginSettings.put(Config.CONFIG + COMMIT_TRANSITIONS, config.getCommitTransitions());
+                pluginSettings.put(Config.CONFIG + MERGE_OPEN_TRANSITIONS, config.getMergeOpenTransitions());
+                pluginSettings.put(Config.CONFIG + MERGE_REOPEN_TRANSITIONS, config.getMergeReopenTransitions());
+                pluginSettings.put(Config.CONFIG + MERGE_MERGE_TRANSITIONS, config.getMergeMergeTransitions());
+                pluginSettings.put(Config.CONFIG + MERGE_CLOSE_TRANSITIONS, config.getMergeCloseTransitions());
+                pluginSettings.put(Config.CONFIG + MERGE_APPROVE_TRANSITIONS, config.getMergeApproveTransitions());
                 pluginSettings.put(Config.CONFIG + IS_ALL_ISSUES, config.getAllIssues());
                 pluginSettings.put(Config.CONFIG + IS_LINK_COMMIT, config.getLinkCommit());
                 pluginSettings.put(Config.CONFIG + IS_LINK_MERGE, config.getLinkMerge());
@@ -147,6 +168,12 @@ public class ConfigResource {
         config.setMergeMerge((String) Utility.getOrDefault(settings, MERGE_MERGE, "0"));
         config.setMergeClose((String) Utility.getOrDefault(settings, MERGE_CLOSE, "0"));
         config.setMergeApprove((String) Utility.getOrDefault(settings, MERGE_APPROVE, "0"));
+        config.setCommitTransitions((String) Utility.getOrDefault(settings, COMMIT_TRANSITIONS, ""));
+        config.setMergeOpenTransitions((String) Utility.getOrDefault(settings, MERGE_OPEN_TRANSITIONS, ""));
+        config.setMergeReopenTransitions((String) Utility.getOrDefault(settings, MERGE_REOPEN_TRANSITIONS, ""));
+        config.setMergeMergeTransitions((String) Utility.getOrDefault(settings, MERGE_MERGE_TRANSITIONS, ""));
+        config.setMergeCloseTransitions((String) Utility.getOrDefault(settings, MERGE_CLOSE_TRANSITIONS, ""));
+        config.setMergeApproveTransitions((String) Utility.getOrDefault(settings, MERGE_APPROVE_TRANSITIONS, ""));
         config.setAllIssues((String) Utility.getOrDefault(settings, IS_ALL_ISSUES, "0"));
         config.setLinkCommit((String) Utility.getOrDefault(settings, IS_LINK_COMMIT, "0"));
         config.setLinkMerge((String) Utility.getOrDefault(settings, IS_LINK_MERGE, "0"));

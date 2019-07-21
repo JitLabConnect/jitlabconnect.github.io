@@ -5,7 +5,6 @@ import com.atlassian.jira.user.ApplicationUser;
 import com.jitlab.connect.servlet.entity.AdaptiveUrl;
 import com.jitlab.connect.servlet.executor.ActionVisitor;
 
-import java.util.List;
 import java.util.Set;
 
 public class MergeRequest extends JiraAction {
@@ -39,7 +38,7 @@ public class MergeRequest extends JiraAction {
     }
 
     @Override
-    public void process(ActionVisitor processor, ApplicationUser user, List<MutableIssue> issues) {
-        processor.processMergeRequest(this, user, issues);
+    public void process(ActionVisitor processor, ApplicationUser user, MutableIssue issue) {
+        processor.processMergeRequest(this, user, issue);
     }
 }

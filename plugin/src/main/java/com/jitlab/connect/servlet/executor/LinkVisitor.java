@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.List;
 
 @Scanned
 @Named("linkVisitor")
@@ -40,98 +39,98 @@ public class LinkVisitor implements ActionVisitor {
     }
 
     @Override
-    public void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, List<MutableIssue> issues) {
-        String text = i18n.getText("jitlab-connect.text.mergerequest") + " " + mergeRequest.getUrl().getId();
+    public void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, MutableIssue issue) {
+        String text = String.format(i18n.getText("jitlab-connect.text.link.text.mergerequest"), mergeRequest.getUrl().getId());
         doLink(mergeRequest.getUrl(),
                 text,
-                i18n.getText("jitlab-connect.text.is") + " " + mergeRequest.getState(),
+                String.format(i18n.getText("jitlab-connect.text.link.summary.mergerequest"), mergeRequest.getState()),
                 !mergeRequest.getState().equalsIgnoreCase("opened"),
                 true,
                 user,
-                issues);
+                issue);
     }
 
     @Override
-    public void processPushRequest(PushRequest pushRequest, ApplicationUser user, List<MutableIssue> issues) {
-        String text = i18n.getText("jitlab-connect.text.changeset") + " " + pushRequest.getUrl().getId();
+    public void processPushRequest(PushRequest pushRequest, ApplicationUser user, MutableIssue issue) {
+        String text = String.format(i18n.getText("jitlab-connect.text.link.text.changeset"), pushRequest.getUrl().getId());
         doLink(pushRequest.getUrl(),
                 text,
                 "",
                 true,
                 false,
                 user,
-                issues);
+                issue);
     }
 
-    private void doLink(AdaptiveUrl url, String text, String summary, boolean isResolved, boolean isShouldBeUpdated, ApplicationUser user, List<MutableIssue> issues) {
-        for (MutableIssue issue : issues) {
-            try {
-                log.debug("Push to JIRA links ({}, {})", issue.getKey(), user.getUsername());
+    private void doLink(AdaptiveUrl url, String text, String summary, boolean isResolved, boolean isShouldBeUpdated, ApplicationUser user, MutableIssue issue) {
+        log.debug("Push to JIRA links ({}, {})", issue.getKey(), user.getUsername());
 
-                RemoteIssueLink link = linkService.getRemoteIssueLinkByGlobalId(user, issue, generateLinkId(url)).getRemoteIssueLink();
-                if (link == null) {
-                    // just for backward compatibility
-                    for (RemoteIssueLink link1 : linkService.getRemoteIssueLinksForIssue(user, issue).getRemoteIssueLinks()) {
-                        if (link1.getUrl().equalsIgnoreCase(url.getUrl())) {
-                            link = link1;
-                            break;
-                        }
-                    }
+        RemoteIssueLink link = linkService.getRemoteIssueLinkByGlobalId(user, issue, generateLinkId(url)).getRemoteIssueLink();
+        if (link == null) {
+            // just for backward compatibility
+            for (RemoteIssueLink link1 : linkService.getRemoteIssueLinksForIssue(user, issue).getRemoteIssueLinks()) {
+                if (link1.getUrl().equalsIgnoreCase(url.getUrl())) {
+                    link = link1;
+                    break;
                 }
-
-                if ((link != null) && !isShouldBeUpdated) continue;
-
-                if (link != null) {
-                    // check old values
-                    if ((link.isResolved() == isResolved)
-                            && (link.getTitle().equalsIgnoreCase(text))
-                            && (link.getSummary() != null)
-                            && link.getSummary().equalsIgnoreCase(summary)) continue;
-
-                    //  update link
-                    RemoteIssueLink updated = new RemoteIssueLinkBuilder(link)
-                            .resolved(isResolved)
-                            .title(text)
-                            .summary(summary)
-                            .build();
-
-                    RemoteIssueLinkService.UpdateValidationResult updateValidateResult = linkService.validateUpdate(user, updated);
-
-                    if (updateValidateResult.isValid()) {
-                        log.debug("Update a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
-                        linkService.update(user, updateValidateResult);
-                    } else {
-                        log.error("Failed to update a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
-                    }
-                    return;
-                }
-
-                // create link
-                link = new RemoteIssueLinkBuilder()
-                        .globalId("jitlab" + url.getUrl())
-                        .issueId(issue.getId())
-                        .applicationName("JitLab Connect")
-                        .applicationType("com.jitlab.connect")
-                        .iconUrl(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png")
-                        .relationship("GitLab")
-                        .title(text)
-                        .url(url.getUrl())
-                        .resolved(isResolved)
-                        .summary(summary)
-                        .build();
-
-                RemoteIssueLinkService.CreateValidationResult createValidateResult = linkService.validateCreate(user, link);
-
-                if (createValidateResult.isValid()) {
-                    log.debug("Create a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
-                    linkService.create(user, createValidateResult);
-                } else {
-                    log.error("Failed to create a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
-                }
-            } catch (Exception ex) {
-                log.debug("Unexpected error: {}", ex.getMessage());
             }
         }
+
+        if ((link != null) && !isShouldBeUpdated) return;
+
+        if (link != null) {
+            // check old values
+            if ((link.isResolved() == isResolved)
+                    && (link.getTitle().equalsIgnoreCase(text))
+                    && (link.getSummary() != null)
+                    && link.getSummary().equalsIgnoreCase(summary)) return;
+
+            //  update link
+            RemoteIssueLink updated = new RemoteIssueLinkBuilder(link)
+                    .resolved(isResolved)
+                    .title(text)
+                    .summary(summary)
+                    .build();
+
+            RemoteIssueLinkService.UpdateValidationResult updateValidateResult = linkService.validateUpdate(user, updated);
+
+            if (updateValidateResult.isValid()) {
+                RemoteIssueLinkService.RemoteIssueLinkResult result = linkService.update(user, updateValidateResult);
+                if (result.isValid()) {
+                    log.debug("Updated a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+                    return;
+                }
+            }
+
+            log.error("Failed to update a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+            return;
+        }
+
+        // create link
+        link = new RemoteIssueLinkBuilder()
+                .globalId("jitlab" + url.getUrl())
+                .issueId(issue.getId())
+                .applicationName("JitLab Connect")
+                .applicationType("com.jitlab.connect")
+                .iconUrl(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png")
+                .relationship("GitLab")
+                .title(text)
+                .url(url.getUrl())
+                .resolved(isResolved)
+                .summary(summary)
+                .build();
+
+        RemoteIssueLinkService.CreateValidationResult createValidateResult = linkService.validateCreate(user, link);
+
+        if (createValidateResult.isValid()) {
+            RemoteIssueLinkService.RemoteIssueLinkResult result = linkService.create(user, createValidateResult);
+            if (result.isValid()) {
+                log.debug("Created a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+                return;
+            }
+        }
+
+        log.error("Failed to create a link for JIRA task ({}, {})", issue.getKey(), user.getUsername());
     }
 
     private String generateLinkId(AdaptiveUrl url) {

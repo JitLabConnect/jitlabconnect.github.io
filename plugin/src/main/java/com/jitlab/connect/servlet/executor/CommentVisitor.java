@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import java.util.List;
 
 @Scanned
 @Named("commentVisitor")
@@ -32,41 +31,39 @@ public class CommentVisitor implements ActionVisitor {
     }
 
     @Override
-    public void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, List<MutableIssue> issues) {
-        String action = i18n.getText("jitlab-connect.text.mergerequest") + " " + mergeRequest.getUrl().linkJira() + " " + i18n.getText("jitlab-connect.text.is") + " " + mergeRequest.getEvent();
+    public void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, MutableIssue issue) {
+        String action = String.format(i18n.getText("jitlab-connect.text.comment.body.mergerequest"), mergeRequest.getUrl().linkJira(), mergeRequest.getEvent());
         String body = action + "{panel}" + mergeRequest.getTitle() + "{panel}";
-        doComments(body, user, issues);
+        doComments(body, user, issue);
     }
 
     @Override
-    public void processPushRequest(PushRequest pushRequest, ApplicationUser user, List<MutableIssue> issues) {
-        String action = i18n.getText("jitlab-connect.text.changeset") + " " + pushRequest.getUrl().linkJira() + " " + i18n.getText("jitlab-connect.text.is") + " " + i18n.getText("jitlab-connect.text.pushed");
+    public void processPushRequest(PushRequest pushRequest, ApplicationUser user, MutableIssue issue) {
+        String action = String.format(i18n.getText("jitlab-connect.text.comment.body.changeset"), pushRequest.getUrl().linkJira());
         String body = action + "{panel}" + pushRequest.getMessage() + "{panel}";
-        doComments(body, user, issues);
+        doComments(body, user, issue);
     }
 
-    private void doComments(String body, ApplicationUser user, List<MutableIssue> issues) {
-        for (MutableIssue issue : issues) {
-            try {
-                log.debug("Push to JIRA comments ({}, {})", issue.getKey(), user.getUsername());
+    private void doComments(String body, ApplicationUser user, MutableIssue issue) {
+        log.debug("Push to JIRA comments ({}, {})", issue.getKey(), user.getUsername());
 
-                commentService.create(
-                        user,
-                        commentService.validateCommentCreate(user,
-                                CommentService.CommentParameters
-                                        .builder()
-                                        .issue(issue)
-                                        .author(user)
-                                        .body(body)
-                                        .build()
-                        ),
-                        true);
+        CommentService.CommentCreateValidationResult result = commentService.validateCommentCreate(user,
+                CommentService.CommentParameters
+                        .builder()
+                        .issue(issue)
+                        .author(user)
+                        .body(body)
+                        .build()
+        );
 
-            } catch (Exception ex) {
-                log.debug("Unexpected error: {}", ex.getMessage());
-            }
+        if (!result.isValid()) {
+            log.debug("Failed to create a comment for JIRA task ({}, {})", issue.getKey(), user.getUsername());
+            return;
         }
 
-
+        commentService.create(
+                user,
+                result,
+                true);
     }
 }

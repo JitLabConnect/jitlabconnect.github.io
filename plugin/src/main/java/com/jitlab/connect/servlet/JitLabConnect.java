@@ -21,10 +21,7 @@ import com.jitlab.connect.servlet.entity.actions.Action;
 import com.jitlab.connect.servlet.entity.actions.JiraAction;
 import com.jitlab.connect.servlet.entity.actions.MergeRequest;
 import com.jitlab.connect.servlet.entity.actions.PushRequest;
-import com.jitlab.connect.servlet.executor.ActionVisitor;
-import com.jitlab.connect.servlet.executor.ActivityVisitor;
-import com.jitlab.connect.servlet.executor.CommentVisitor;
-import com.jitlab.connect.servlet.executor.LinkVisitor;
+import com.jitlab.connect.servlet.executor.*;
 import com.jitlab.connect.servlet.users.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -61,7 +58,7 @@ public class JitLabConnect extends HttpServlet {
 
     @Inject
     public JitLabConnect(
-            @ComponentImport IssueService issueService,
+            IssueService issueService,
             com.atlassian.sal.api.user.UserManager pluginUserManager,
             LoginUriProvider loginUriProvider,
             TemplateRenderer renderer,
@@ -155,13 +152,10 @@ public class JitLabConnect extends HttpServlet {
         // processors
         List<ActionVisitor> processors = new ArrayList<>();
         Action firstAction = request.getActions().get(0);
-        try {
-            if (firstAction instanceof MergeRequest) {
-                processors.addAll(populateProcessors((MergeRequest) firstAction, settings));
-            } else if (firstAction instanceof PushRequest) {
-                processors.addAll(populateProcessors((PushRequest) firstAction, settings));
-            }
-        } catch (Exception ignored) {
+        if (firstAction instanceof MergeRequest) {
+            processors.addAll(populateProcessors((MergeRequest) firstAction, settings));
+        } else if (firstAction instanceof PushRequest) {
+            processors.addAll(populateProcessors((PushRequest) firstAction, settings));
         }
 
         // execute
@@ -184,13 +178,19 @@ public class JitLabConnect extends HttpServlet {
             log.error("Issues not found in Jira for request");
             return;
         }
-
-        for (ActionVisitor processor : processors) {
-            action.process(processor, user, issues);
+        for (MutableIssue issue : issues) {
+            try {
+                for (ActionVisitor processor : processors) {
+                    action.process(processor, user, issue);
+                }
+            } catch (Exception ex) {
+                log.error("Unexpected error: {}", ex.getMessage());
+            }
         }
     }
 
-    private List<MutableIssue> populateIssues(Set<String> keys, ApplicationUser user, Map<String, MutableIssue> issuesHash, boolean isAllIssues) {
+    private List<MutableIssue> populateIssues(Set<String> keys, ApplicationUser
+            user, Map<String, MutableIssue> issuesHash, boolean isAllIssues) {
         List<MutableIssue> issues = new ArrayList<>();
         for (String key : keys) {
             if (issuesHash.containsKey(key)) {
@@ -218,17 +218,23 @@ public class JitLabConnect extends HttpServlet {
     private List<ActionVisitor> populateProcessors(MergeRequest mergeRequest, Config settings) {
         List<ActionVisitor> processors = new ArrayList<>();
         String action = mergeRequest.getEvent();
+        List<Integer> transitions = null;
         String config = "0";
         if (action.equalsIgnoreCase("opened")) {
             config = settings.getMergeOpen();
+            transitions = Utility.stringToList(settings.getMergeOpenTransitions());
         } else if (action.equalsIgnoreCase("reopened")) {
             config = settings.getMergeReopen();
+            transitions = Utility.stringToList(settings.getMergeReopenTransitions());
         } else if (action.equalsIgnoreCase("merged")) {
             config = settings.getMergeMerge();
+            transitions = Utility.stringToList(settings.getMergeMergeTransitions());
         } else if (action.equalsIgnoreCase("closed")) {
             config = settings.getMergeClose();
+            transitions = Utility.stringToList(settings.getMergeCloseTransitions());
         } else if (action.equalsIgnoreCase("approved")) {
             config = settings.getMergeApprove();
+            transitions = Utility.stringToList(settings.getMergeApproveTransitions());
         }
 
         if (config.equals("1")) {
@@ -241,6 +247,10 @@ public class JitLabConnect extends HttpServlet {
         String link = settings.getLinkMerge();
         if (link.equals("1")) {
             processors.add(linkVisitor);
+        }
+
+        if (transitions != null && !transitions.isEmpty()) {
+            processors.add(new TransitionVisitor(transitions, issueService));
         }
 
         return processors;
@@ -260,6 +270,12 @@ public class JitLabConnect extends HttpServlet {
         if (link.equals("1")) {
             processors.add(linkVisitor);
         }
+
+        List<Integer> transitions = Utility.stringToList(settings.getCommitTransitions());
+        if (!transitions.isEmpty()) {
+            processors.add(new TransitionVisitor(transitions, issueService));
+        }
+
         return processors;
     }
 }

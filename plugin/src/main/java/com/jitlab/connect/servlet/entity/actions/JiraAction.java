@@ -6,7 +6,7 @@ import java.util.Set;
 
 public abstract class JiraAction implements Action {
     private AdaptiveUrl url;
-    public Set<String> issues;
+    private Set<String> issues;
 
     protected JiraAction(AdaptiveUrl url, Set<String> issues) {
         this.url = url;

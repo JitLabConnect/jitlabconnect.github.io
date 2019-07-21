@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import javax.inject.Named;
 import java.net.URI;
-import java.util.List;
 
 @Scanned
 @Named("activityVisitor")
@@ -45,71 +44,53 @@ public class ActivityVisitor implements ActionVisitor {
     }
 
     @Override
-    public void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, List<MutableIssue> issues) {
-        String actionTitle = mergeRequest.getEvent() + " " + i18n.getText("jitlab-connect.text.mergerequest").toLowerCase();
-        String body = "<blockquote><p>" + i18n.getText("jitlab-connect.text.mergerequest") + " " + mergeRequest.getUrl().link()
+    public void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, MutableIssue issue) {
+        String title = String.format(i18n.getText("jitlab-connect.text.activity.title.mergerequest"), user.getDisplayName(), mergeRequest.getEvent(), issue.getKey());
+        String body = "<blockquote><p>" + String.format(i18n.getText("jitlab-connect.text.activity.body.mergerequest"), mergeRequest.getUrl().link())
                 + "</p><div class=\"panel\" style=\"border-width: 1.0px;\"><div class=\"panelContent\"><p>"
                 + mergeRequest.getTitle()
                 + "</p></div></div></blockquote>";
-        doActivity(mergeRequest.getUrl(), actionTitle, body, user, issues);
+        doActivity(mergeRequest.getUrl(), title, body, user, issue);
     }
 
     @Override
-    public void processPushRequest(PushRequest pushRequest, ApplicationUser user, List<MutableIssue> issues) {
-        String actionTitle = i18n.getText("jitlab-connect.text.pushedchangeset").toLowerCase();
-        String body = "<blockquote><p>" + i18n.getText("jitlab-connect.text.changeset") + " " + pushRequest.getUrl().link()
+    public void processPushRequest(PushRequest pushRequest, ApplicationUser user, MutableIssue issue) {
+        String title = String.format(i18n.getText("jitlab-connect.text.activity.title.changeset"), user.getDisplayName(), issue.getKey());
+        String body = "<blockquote><p>" + String.format(i18n.getText("jitlab-connect.text.activity.body.changeset"), pushRequest.getUrl().link())
                 + "</p><div class=\"panel\" style=\"border-width: 1.0px;\"><div class=\"panelContent\"><p>"
                 + pushRequest.getMessage()
                 + "</p></div></div></blockquote>";
-        doActivity(pushRequest.getUrl(), actionTitle, body, user, issues);
+        doActivity(pushRequest.getUrl(), title, body, user, issue);
     }
 
-    private void doActivity(AdaptiveUrl url, String actionTitle, String body, ApplicationUser user, List<MutableIssue> issues) {
+    private void doActivity(AdaptiveUrl url, String title, String body, ApplicationUser user, MutableIssue issue) {
+        log.debug("Push to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
+
         JiraAuthenticationContext authContext = ComponentAccessor.getJiraAuthenticationContext();
         authContext.setLoggedInUser(ComponentAccessor.getUserManager().getUserByKey(user.getKey()));
 
-        for (MutableIssue issue : issues) {
-            try {
-                log.debug("Push to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
+        Activity.Builder builder = new Activity.Builder(
+                Application.application("JitLab Connect", URI.create("https://jitlabconnect.github.io/")),
+                new DateTime(),
+                new com.atlassian.streams.api.UserProfile.Builder(user.getUsername()).build());
 
-                String title = new StringBuilder("<strong>")
-                        .append(user.getDisplayName())
-                        .append("</strong> ")
-                        .append(" ")
-                        .append(actionTitle)
-                        .append(" ")
-                        .append(i18n.getText("jitlab-connect.text.for"))
-                        .append(" ")
-                        .append(issue.getKey())
-                        .toString();
+        Either<ValidationErrors, Activity> result = builder
+                //     .id(Option.option(url)) TODO
+                .target(new ActivityObject
+                        .Builder()
+                        .urlString(Option.option(issue.getKey()))
+                        .build())
+                .title(Option.option(new Html(title)))
+                .content(Option.option(new Html(body)))
+                .url(Option.option(URI.create(url.getUrl())))
+                .icon(Option.option(Image.withUrl(URI.create(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png"))))
+                .build();
+        for (Activity activity : result.right()) {
+            activityService.postActivity(activity);
+        }
 
-                Activity.Builder builder = new Activity.Builder(
-                        Application.application("JitLab Connect", URI.create("https://jitlabconnect.github.io/")),
-                        new DateTime(),
-                        new com.atlassian.streams.api.UserProfile.Builder(user.getUsername()).build());
-
-                Either<ValidationErrors, Activity> result = builder
-                        //     .id(Option.option(url)) TODO
-                        .target(new ActivityObject
-                                .Builder()
-                                .urlString(Option.option(issue.getKey()))
-                                .build())
-                        .title(Option.option(new Html(title)))
-                        .content(Option.option(new Html(body)))
-                        .url(Option.option(URI.create(url.getUrl())))
-                        .icon(Option.option(Image.withUrl(URI.create(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png"))))
-                        .build();
-                for (Activity activity : result.right()) {
-                    log.debug("Push to JIRA activity ({}, {})", issue.getKey(), user.getUsername());
-                    activityService.postActivity(activity);
-                }
-
-                for (ValidationErrors errors : result.left()) {
-                    log.error("Failed to push JIRA activity ({}, {})", issue.getKey(), errors.toString());
-                }
-            } catch (Exception ex) {
-                log.debug("Unexpected error: {}", ex.getMessage());
-            }
+        for (ValidationErrors errors : result.left()) {
+            log.error("Failed to push JIRA activity ({}, {})", issue.getKey(), errors.toString());
         }
     }
 }

@@ -1,5 +1,4 @@
 (function ($) {
-
     // form the URL
     var tokenSize = 20;
     var restUrl = AJS.contextPath() + "/rest/jitlab-connect/1.0/";
@@ -9,6 +8,7 @@
                                       .concat("/plugins/servlet/jitlab");
 
     $(document).ready(function() {
+        AJS.inlineHelp();
         $("#jitlab-url").text(servletUrl);
 
         // request the config information from the server
@@ -26,6 +26,12 @@
             $("#jitlab-merge3").val(config.mergeMerge).change();
             $("#jitlab-merge4").val(config.mergeClose).change();
             $("#jitlab-merge5").val(config.mergeApprove).change();
+            $("#jitlab-commit-transitions").val(config.commitTransitions).change();
+            $("#jitlab-merge1-transitions").val(config.mergeOpenTransitions).change();
+            $("#jitlab-merge2-transitions").val(config.mergeReopenTransitions).change();
+            $("#jitlab-merge3-transitions").val(config.mergeMergeTransitions).change();
+            $("#jitlab-merge4-transitions").val(config.mergeCloseTransitions).change();
+            $("#jitlab-merge5-transitions").val(config.mergeApproveTransitions).change();
             $("#jitlab-searchbyname").attr('checked', config.searchByName == '1');
             $("#jitlab-allissues").attr('checked', config.allIssues == '1');
             $("#jitlab-link-commit").attr('checked', config.linkCommit == '1');
@@ -89,6 +95,12 @@
             mergeMerge: AJS.$("#jitlab-merge3").val().trim(),
             mergeClose: AJS.$("#jitlab-merge4").val().trim(),
             mergeApprove: AJS.$("#jitlab-merge5").val().trim(),
+            commitTransitions: AJS.$("#jitlab-commit-transitions").val().trim(),
+            mergeOpenTransitions: AJS.$("#jitlab-merge1-transitions").val().trim(),
+            mergeReopenTransitions: AJS.$("#jitlab-merge2-transitions").val().trim(),
+            mergeMergeTransitions: AJS.$("#jitlab-merge3-transitions").val().trim(),
+            mergeCloseTransitions: AJS.$("#jitlab-merge4-transitions").val().trim(),
+            mergeApproveTransitions: AJS.$("#jitlab-merge5-transitions").val().trim(),
             searchByName: (AJS.$("#jitlab-searchbyname").is(':checked'))? "1": "0",
             allIssues: (AJS.$("#jitlab-allissues").is(':checked'))? "1": "0",
             linkCommit: (AJS.$("#jitlab-link-commit").is(':checked'))? "1": "0",

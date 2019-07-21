@@ -5,10 +5,8 @@ import com.atlassian.jira.user.ApplicationUser;
 import com.jitlab.connect.servlet.entity.actions.MergeRequest;
 import com.jitlab.connect.servlet.entity.actions.PushRequest;
 
-import java.util.List;
-
 public interface ActionVisitor {
-    void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, List<MutableIssue> issues);
+    void processMergeRequest(MergeRequest mergeRequest, ApplicationUser user, MutableIssue issue);
 
-    void processPushRequest(PushRequest pushRequest, ApplicationUser user, List<MutableIssue> issues);
+    void processPushRequest(PushRequest pushRequest, ApplicationUser user, MutableIssue issue);
 }

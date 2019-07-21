@@ -11,10 +11,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,30 +54,42 @@ public class Utility {
         return stringBuilder.toString();
     }
 
-    public static Map<String, String> stringToMap(String input, boolean validate) {
+    public static Map<String, String> stringToMap(String input) {
         Map<String, String> map = new HashMap<>();
         if (StringUtils.isEmpty(input)) {
             return map;
         }
 
-        try {
-            String[] nameValuePairs = input.split(";");
-            for (String nameValuePair : nameValuePairs) {
-                String[] nameValue = nameValuePair.split(",");
+        String[] nameValuePairs = input.split(";");
+        for (String nameValuePair : nameValuePairs) {
+            String[] nameValue = nameValuePair.split(",");
+            try {
                 String key = URLDecoder.decode(nameValue[0], "UTF-8");
                 String value = URLDecoder.decode(nameValue[1], "UTF-8");
-                if (key.equals("") || value.equals("")) {
-                    throw new RuntimeException();
-                }
                 map.put(key, value);
-            }
-        } catch (Exception ignored) {
-            if (validate) {
-                throw new IllegalArgumentException();
+            } catch (Exception ignored) {
             }
         }
 
         return map;
+    }
+
+    public static List<Integer> stringToList(String input) {
+        List<Integer> list = new ArrayList<>();
+        if (StringUtils.isEmpty(input)) {
+            return list;
+        }
+
+        String[] items = input.split(";");
+        for (String item : items) {
+            try {
+                int number = Integer.parseUnsignedInt(item);
+                list.add(number);
+            } catch (Exception ignored) {
+            }
+        }
+
+        return list;
     }
 
     public static Object getOrDefault(PluginSettings settings, String key, Object value) {
@@ -91,6 +100,15 @@ public class Utility {
     public static Set<String> getUniqueArray(Pattern tagMatcher, String str) {
         Matcher m = tagMatcher.matcher(str);
         HashSet<String> set = new HashSet<>();
+        while (m.find()) {
+            set.add(m.group());
+        }
+        return set;
+    }
+
+    public static List<String> getArray(Pattern tagMatcher, String str) {
+        Matcher m = tagMatcher.matcher(str);
+        List<String> set = new ArrayList<>();
         while (m.find()) {
             set.add(m.group());
         }
@@ -108,5 +126,9 @@ public class Utility {
         }
 
         return verb;
+    }
+
+    public static boolean validateOrBlank(Pattern pattern, String str) {
+        return (StringUtils.isBlank(str)) || pattern.matcher(str).matches();
     }
 }

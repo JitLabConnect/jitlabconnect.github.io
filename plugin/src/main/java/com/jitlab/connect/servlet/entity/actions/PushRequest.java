@@ -5,7 +5,6 @@ import com.atlassian.jira.user.ApplicationUser;
 import com.jitlab.connect.servlet.entity.AdaptiveUrl;
 import com.jitlab.connect.servlet.executor.ActionVisitor;
 
-import java.util.List;
 import java.util.Set;
 
 public class PushRequest extends JiraAction {
@@ -21,7 +20,7 @@ public class PushRequest extends JiraAction {
     }
 
     @Override
-    public void process(ActionVisitor processor, ApplicationUser user, List<MutableIssue> issues) {
-        processor.processPushRequest(this, user, issues);
+    public void process(ActionVisitor processor, ApplicationUser user, MutableIssue issue) {
+        processor.processPushRequest(this, user, issue);
     }
 }

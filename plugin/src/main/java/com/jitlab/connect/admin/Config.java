@@ -15,21 +15,33 @@ public final class Config {
     @XmlElement
     private String user; // '' or jira username
     @XmlElement
-    private String mapping;
+    private String mapping; // jira,gitlab;jira,gitlab;
     @XmlElement
     private String searchByName;
     @XmlElement
-    private String commit; //0 - nothing, 1 - comment, 2 - activity
+    private String commit; // 0 - nothing, 1 - comment, 2 - activity
     @XmlElement
-    private String mergeOpen; //0 - nothing, 1 - comment, 2 - activity
+    private String mergeOpen; // 0 - nothing, 1 - comment, 2 - activity
     @XmlElement
-    private String mergeReopen; //0 - nothing, 1 - comment, 2 - activity
+    private String mergeReopen; // 0 - nothing, 1 - comment, 2 - activity
     @XmlElement
-    private String mergeMerge; //0 - nothing, 1 - comment, 2 - activity
+    private String mergeMerge; // 0 - nothing, 1 - comment, 2 - activity
     @XmlElement
-    private String mergeClose; //0 - nothing, 1 - comment, 2 - activity
+    private String mergeClose; // 0 - nothing, 1 - comment, 2 - activity
     @XmlElement
-    private String mergeApprove; //0 - nothing, 1 - comment, 2 - activity
+    private String mergeApprove; // 0 - nothing, 1 - comment, 2 - activity
+    @XmlElement
+    private String commitTransitions; // id,;id
+    @XmlElement
+    private String mergeOpenTransitions; // id,;id
+    @XmlElement
+    private String mergeReopenTransitions; // id,;id
+    @XmlElement
+    private String mergeMergeTransitions; // id,;id
+    @XmlElement
+    private String mergeCloseTransitions; // id,;id
+    @XmlElement
+    private String mergeApproveTransitions; // id,;id
     @XmlElement
     private String allIssues;
     @XmlElement
@@ -139,5 +151,53 @@ public final class Config {
 
     public void setSearchByName(String searchByName) {
         this.searchByName = searchByName;
+    }
+
+    public String getCommitTransitions() {
+        return commitTransitions;
+    }
+
+    public void setCommitTransitions(String commitTransitions) {
+        this.commitTransitions = commitTransitions;
+    }
+
+    public String getMergeOpenTransitions() {
+        return mergeOpenTransitions;
+    }
+
+    public void setMergeOpenTransitions(String mergeOpenTransitions) {
+        this.mergeOpenTransitions = mergeOpenTransitions;
+    }
+
+    public String getMergeReopenTransitions() {
+        return mergeReopenTransitions;
+    }
+
+    public void setMergeReopenTransitions(String mergeReopenTransitions) {
+        this.mergeReopenTransitions = mergeReopenTransitions;
+    }
+
+    public String getMergeMergeTransitions() {
+        return mergeMergeTransitions;
+    }
+
+    public void setMergeMergeTransitions(String mergeMergeTransitions) {
+        this.mergeMergeTransitions = mergeMergeTransitions;
+    }
+
+    public String getMergeCloseTransitions() {
+        return mergeCloseTransitions;
+    }
+
+    public void setMergeCloseTransitions(String mergeCloseTransitions) {
+        this.mergeCloseTransitions = mergeCloseTransitions;
+    }
+
+    public String getMergeApproveTransitions() {
+        return mergeApproveTransitions;
+    }
+
+    public void setMergeApproveTransitions(String mergeApproveTransitions) {
+        this.mergeApproveTransitions = mergeApproveTransitions;
     }
 }

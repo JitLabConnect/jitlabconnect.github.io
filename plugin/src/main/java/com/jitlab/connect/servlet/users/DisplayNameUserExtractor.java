@@ -33,17 +33,14 @@ public class DisplayNameUserExtractor extends AbstractUserExtractor {
         }
 
         ApplicationUser user = null;
-        try {
-            List<User> users = userSearchService.findUsers(displayName, "", userSearchParams);
-            if (users != null && users.size() == 1) {
-                ApplicationUser applicationUser = ApplicationUsers.from(users.get(0));
-                if (applicationUser != null && applicationUser.getDisplayName().equalsIgnoreCase(displayName)) {
-                    user = applicationUser;
-                }
+        List<User> users = userSearchService.findUsers(displayName, "", userSearchParams);
+        if (users != null && users.size() == 1) {
+            ApplicationUser applicationUser = ApplicationUsers.from(users.get(0));
+            if (applicationUser != null && applicationUser.getDisplayName() != null && applicationUser.getDisplayName().equalsIgnoreCase(displayName)) {
+                user = applicationUser;
             }
-        } catch (Exception ex) {
-            // do nothing
         }
+
         return user;
     }
 }

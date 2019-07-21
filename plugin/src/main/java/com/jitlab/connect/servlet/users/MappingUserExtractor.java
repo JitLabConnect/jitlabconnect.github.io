@@ -23,10 +23,8 @@ public class MappingUserExtractor extends AbstractUserExtractor {
     @Nullable
     @Override
     protected ApplicationUser doGetUser(String userName, String displayName, Config pluginSettings) {
-        Map<String, String> mapping = Utility.stringToMap(pluginSettings.getMapping(), false);
-
-
-        if (mapping != null && mapping.containsKey(userName)) {
+        Map<String, String> mapping = Utility.stringToMap(pluginSettings.getMapping());
+        if (mapping.containsKey(userName)) {
             return userManager.getUserByName(mapping.get(userName));
         }
 
