@@ -5,7 +5,8 @@
 ## Advantages
 - Support for **Push requests** and **Merge requests**
 - Detailed configuration of actions: **Comment**, **Activity**, **Do nothing**
-- Support of multiple tasks in a single request
+- Support for multiple tasks in a single request
+- Support for jira transitions
 - Adding links to tasks
 - [Open source](https://github.com/JitLabConnect/jitlabconnect.github.io/)
 
@@ -23,7 +24,10 @@
 ## Screenshots
 ### Admin panel
 <p align="center"> 
-  <img src="/img/admin.png">
+  <img src="/img/admin0.png">
+</p>
+<p align="center"> 
+  <img src="/img/admin1.png">
 </p>
 
 ### Activity panel
