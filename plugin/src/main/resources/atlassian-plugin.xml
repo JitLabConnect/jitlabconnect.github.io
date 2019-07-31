@@ -16,6 +16,9 @@
 
     <!-- add our web resources -->
     <web-resource key="jitlab-connect-resources" name="plugin Web Resources">
+        <transformation extension="js">
+            <transformer key="jsI18n" />
+        </transformation>
         <dependency>com.atlassian.auiplugin:ajs</dependency>
         <resource type="download" name="jitlab-connect.css" location="/css/jitlab-connect.css" />
         <resource type="download" name="jitlab-connect.js" location="/js/jitlab-connect.js" />

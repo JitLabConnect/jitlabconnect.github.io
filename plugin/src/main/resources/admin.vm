@@ -3,7 +3,6 @@
         <title>$i18n.getText("jitlab-connect.admin.label")</title>
         <meta name="decorator" content="atl.admin" />
         $webResourceManager.requireResource("com.jitlab.plugin:jitlab-connect-resources")
-        $webResourceManager.requireResource("com.atlassian.auiplugin:aui-flag")
     </head>
     <body>
         <form class="aui" id="jitlab-admin">
@@ -32,7 +31,7 @@
                     <div class="error" id="jitlab-token-error">$i18n.getText("jitlab-connect.admin.token.error")</div>
                 </div>
                 <div class="buttons-container">
-                    <input class="button" id="jitlab-generate" type="button"
+                    <input class="button" type="button" id="jitlab-generate"
                         value="$i18n.getText('jitlab-connect.admin.generate.label')" />
                 </div>
 
@@ -73,6 +72,31 @@
                     <div class="description">$i18n.getText("jitlab-connect.admin.user.caption")</div>
                 </div>
 
+                <h3>$i18n.getText("jitlab-connect.admin.projects.label")</h3>
+
+                <!-- project -->
+                <div class="field-group">
+                    <label for="jitlab-project-add-text">
+                        $i18n.getText("jitlab-connect.admin.projects.add.text.label"):
+                    </label>
+                    <input name="jitlab-project-add-text" class="text" id="jitlab-project-add-text"
+                        placeholder="$i18n.getText('jitlab-connect.admin.projects.add.text.placeholder')" type="text" />
+                    <input class="button" type="button" id="jitlab-project-add"
+                        value="$i18n.getText('jitlab-connect.admin.projects.add.label')" />
+                    <!--<input class="button" type="button" id="jitlab-project-add-copy"
+                        value="$i18n.getText('jitlab-connect.admin.projects.add.copy.label')" />-->
+                    <div class="description">$i18n.getText("jitlab-connect.admin.projects.add.caption")</div>
+                </div>
+
+                <div class="field-group">
+                    <label for="jitlab-project">$i18n.getText("jitlab-connect.admin.projects.project.label"):</label>
+                    <select class="select" id="jitlab-project" name="jitlab-project"></select>
+                    <input class="button" type="button" id="jitlab-project-delete"
+                        value="$i18n.getText('jitlab-connect.admin.projects.delete.label')" />
+                </div>
+
+                <h2><font id="jitlab-project-title"></font>:
+                </h2>
                 <h3>$i18n.getText("jitlab-connect.admin.commits")</h3>
 
                 <!-- commit -->

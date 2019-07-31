@@ -28,7 +28,7 @@ public class DisplayNameUserExtractor extends AbstractUserExtractor {
     @Nullable
     @Override
     protected ApplicationUser doGetUser(String userName, String displayName, Config pluginSettings) {
-        if (pluginSettings.getSearchByName().equals("0")) {
+        if (!pluginSettings.getSearchByName()) {
             return null;
         }
 

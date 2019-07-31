@@ -4,6 +4,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.util.Map;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -15,61 +16,19 @@ public final class Config {
     @XmlElement
     private String user; // '' or jira username
     @XmlElement
-    private String mapping; // jira,gitlab;jira,gitlab;
+    private String mapping; // gitlab,jira;gitlab,jira;
     @XmlElement
-    private String searchByName;
+    private boolean searchByName;
     @XmlElement
-    private String commit; // 0 - nothing, 1 - comment, 2 - activity
+    private boolean allIssues;
     @XmlElement
-    private String mergeOpen; // 0 - nothing, 1 - comment, 2 - activity
-    @XmlElement
-    private String mergeReopen; // 0 - nothing, 1 - comment, 2 - activity
-    @XmlElement
-    private String mergeMerge; // 0 - nothing, 1 - comment, 2 - activity
-    @XmlElement
-    private String mergeClose; // 0 - nothing, 1 - comment, 2 - activity
-    @XmlElement
-    private String mergeApprove; // 0 - nothing, 1 - comment, 2 - activity
-    @XmlElement
-    private String commitTransitions; // id,;id
-    @XmlElement
-    private String mergeOpenTransitions; // id,;id
-    @XmlElement
-    private String mergeReopenTransitions; // id,;id
-    @XmlElement
-    private String mergeMergeTransitions; // id,;id
-    @XmlElement
-    private String mergeCloseTransitions; // id,;id
-    @XmlElement
-    private String mergeApproveTransitions; // id,;id
-    @XmlElement
-    private String allIssues;
-    @XmlElement
-    private String linkCommit;
-    @XmlElement
-    private String linkMerge;
+    private Map<String, ProjectConfig> projectConfigs; // localid;inttype
 
-    public String getLinkCommit() {
-        return linkCommit;
-    }
-
-    public void setLinkCommit(String linkCommit) {
-        this.linkCommit = linkCommit;
-    }
-
-    public String getLinkMerge() {
-        return linkMerge;
-    }
-
-    public void setLinkMerge(String linkMerge) {
-        this.linkMerge = linkMerge;
-    }
-
-    public String getAllIssues() {
+    public boolean getAllIssues() {
         return allIssues;
     }
 
-    public void setAllIssues(String allIssues) {
+    public void setAllIssues(boolean allIssues) {
         this.allIssues = allIssues;
     }
 
@@ -97,107 +56,19 @@ public final class Config {
         this.mapping = mapping;
     }
 
-    public String getCommit() {
-        return commit;
-    }
-
-    public void setCommit(String commit) {
-        this.commit = commit;
-    }
-
-    public String getMergeOpen() {
-        return mergeOpen;
-    }
-
-    public void setMergeOpen(String mergeOpen) {
-        this.mergeOpen = mergeOpen;
-    }
-
-    public String getMergeReopen() {
-        return mergeReopen;
-    }
-
-    public void setMergeReopen(String mergeReopen) {
-        this.mergeReopen = mergeReopen;
-    }
-
-    public String getMergeMerge() {
-        return mergeMerge;
-    }
-
-    public void setMergeMerge(String mergeMerge) {
-        this.mergeMerge = mergeMerge;
-    }
-
-    public String getMergeClose() {
-        return mergeClose;
-    }
-
-    public void setMergeClose(String mergeClose) {
-        this.mergeClose = mergeClose;
-    }
-
-    public String getMergeApprove() {
-        return mergeApprove;
-    }
-
-    public void setMergeApprove(String mergeApprove) {
-        this.mergeApprove = mergeApprove;
-    }
-
-    public String getSearchByName() {
+    public boolean getSearchByName() {
         return searchByName;
     }
 
-    public void setSearchByName(String searchByName) {
+    public void setSearchByName(boolean searchByName) {
         this.searchByName = searchByName;
     }
 
-    public String getCommitTransitions() {
-        return commitTransitions;
+    public Map<String, ProjectConfig> getProjectConfigs() {
+        return projectConfigs;
     }
 
-    public void setCommitTransitions(String commitTransitions) {
-        this.commitTransitions = commitTransitions;
-    }
-
-    public String getMergeOpenTransitions() {
-        return mergeOpenTransitions;
-    }
-
-    public void setMergeOpenTransitions(String mergeOpenTransitions) {
-        this.mergeOpenTransitions = mergeOpenTransitions;
-    }
-
-    public String getMergeReopenTransitions() {
-        return mergeReopenTransitions;
-    }
-
-    public void setMergeReopenTransitions(String mergeReopenTransitions) {
-        this.mergeReopenTransitions = mergeReopenTransitions;
-    }
-
-    public String getMergeMergeTransitions() {
-        return mergeMergeTransitions;
-    }
-
-    public void setMergeMergeTransitions(String mergeMergeTransitions) {
-        this.mergeMergeTransitions = mergeMergeTransitions;
-    }
-
-    public String getMergeCloseTransitions() {
-        return mergeCloseTransitions;
-    }
-
-    public void setMergeCloseTransitions(String mergeCloseTransitions) {
-        this.mergeCloseTransitions = mergeCloseTransitions;
-    }
-
-    public String getMergeApproveTransitions() {
-        return mergeApproveTransitions;
-    }
-
-    public void setMergeApproveTransitions(String mergeApproveTransitions) {
-        this.mergeApproveTransitions = mergeApproveTransitions;
+    public void setProjectConfigs(Map<String, ProjectConfig> projectConfigs) {
+        this.projectConfigs = projectConfigs;
     }
 }

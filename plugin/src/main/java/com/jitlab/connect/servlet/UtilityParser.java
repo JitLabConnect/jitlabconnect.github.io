@@ -27,7 +27,8 @@ public class UtilityParser {
 
             String user = json.getAsJsonObject("user").getAsJsonPrimitive("username").getAsString();
             String userName = json.getAsJsonObject("user").getAsJsonPrimitive("name").getAsString();
-            JitLabRequest request = new JitLabRequest(user, userName);
+            int project = json.getAsJsonObject("project").getAsJsonPrimitive("id").getAsInt();
+            JitLabRequest request = new JitLabRequest(user, userName, project);
 
             String id = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("id").getAsString();
             String title = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("title").getAsString();
@@ -54,8 +55,9 @@ public class UtilityParser {
             JsonObject json = getJsonElement(requestBody).getAsJsonObject();
             String user = json.getAsJsonPrimitive("user_username").getAsString();
             String userName = json.getAsJsonPrimitive("user_name").getAsString();
+            int project = json.getAsJsonObject("project").getAsJsonPrimitive("id").getAsInt();
 
-            JitLabRequest request = new JitLabRequest(user, userName);
+            JitLabRequest request = new JitLabRequest(user, userName, project);
 
             JsonArray commits = json.getAsJsonArray("commits");
             for (int i = 0; i < commits.size(); i++) {

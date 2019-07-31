@@ -22,14 +22,17 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Path("/")
 @Scanned
 public class ConfigResource {
-    private static final Pattern integersListPattern = Pattern.compile("^\\d+(;\\d+)*(;)?$");
+    //private static final String listSubPattern = "\\d+(?:,\\d+)*";
+    //private static final String transitionsItemSubPattern = String.format("(?:%s:)?%s", listSubPattern, listSubPattern);
+    //private static final Pattern transitionsPattern = Pattern.compile(String.format("^%s(;%s)*(;)?$", transitionsItemSubPattern, transitionsItemSubPattern));
     private static final Pattern mapPattern = Pattern.compile("^([^,;]+,[^,;]+)+(;([^,;]+,[^,;]+))*(;)?$");
+    private static final Pattern listPattern = Pattern.compile("^\\d+(;\\d+)*(;)?$");
 
     @ComponentImport
     private final UserManager userManager;
@@ -44,6 +47,12 @@ public class ConfigResource {
     public static final String USER = ".user";
     public static final String MAPPING = ".mapping";
     public static final String SEARCH_BY_NAME = ".searchbyname";
+    public static final String PROJECTS = ".projects";
+    public static final String IS_ALL_ISSUES = ".isallissues";
+
+    public static final String PROJECT_TITLE = ".projecttitle";
+    public static final String PROJECT_TYPE = ".projecttype";
+    public static final String PROJECT_LOCALID = ".projectlocalid";
     public static final String COMMIT = ".commit";
     public static final String MERGE_OPEN = ".mergeopen";
     public static final String MERGE_REOPEN = ".mergereopen";
@@ -56,7 +65,6 @@ public class ConfigResource {
     public static final String MERGE_MERGE_TRANSITIONS = ".mergemergetransitions";
     public static final String MERGE_CLOSE_TRANSITIONS = ".mergeclosetransitions";
     public static final String MERGE_APPROVE_TRANSITIONS = ".mergeapprovetransitions";
-    public static final String IS_ALL_ISSUES = ".isallissues";
     public static final String IS_LINK_COMMIT = ".islinkcommit";
     public static final String IS_LINK_MERGE = ".islinkmerge";
 
@@ -115,14 +123,22 @@ public class ConfigResource {
             }
         }
 
-        // transitions
-        if (!Utility.validateOrBlank(integersListPattern, config.getCommitTransitions())
-                || !Utility.validateOrBlank(integersListPattern, config.getMergeApproveTransitions())
-                || !Utility.validateOrBlank(integersListPattern, config.getMergeCloseTransitions())
-                || !Utility.validateOrBlank(integersListPattern, config.getMergeMergeTransitions())
-                || !Utility.validateOrBlank(integersListPattern, config.getMergeOpenTransitions())
-                || !Utility.validateOrBlank(integersListPattern, config.getMergeReopenTransitions())) {
-            return Response.ok(UpdatingResponse.error(i18n.getText("jitlab-connect.admin.response.error.transitions"))).build();
+        Map<String, ProjectConfig> actions = config.getProjectConfigs();
+        if (actions == null || actions.isEmpty()) {
+            return Response.ok(UpdatingResponse.error("")).build(); // TODO TEXT
+        }
+
+        for (Map.Entry<String, ProjectConfig> entry : actions.entrySet()) {
+
+            // transitions
+            if (!Utility.validateOrBlank(listPattern, entry.getValue().getCommitTransitions())
+                    || !Utility.validateOrBlank(listPattern, entry.getValue().getMergeApproveTransitions())
+                    || !Utility.validateOrBlank(listPattern, entry.getValue().getMergeCloseTransitions())
+                    || !Utility.validateOrBlank(listPattern, entry.getValue().getMergeMergeTransitions())
+                    || !Utility.validateOrBlank(listPattern, entry.getValue().getMergeOpenTransitions())
+                    || !Utility.validateOrBlank(listPattern, entry.getValue().getMergeReopenTransitions())) {
+                return Response.ok(UpdatingResponse.error(String.format(i18n.getText("jitlab-connect.admin.response.error.transitions"), entry.getValue().getTitle()))).build(); // tODO text
+            }
         }
 
         transactionTemplate.execute(new TransactionCallback<Object>() {
@@ -132,22 +148,59 @@ public class ConfigResource {
                 pluginSettings.put(Config.CONFIG + TOKEN, config.getToken());
                 pluginSettings.put(Config.CONFIG + USER, config.getUser());
                 pluginSettings.put(Config.CONFIG + MAPPING, config.getMapping().trim());
-                pluginSettings.put(Config.CONFIG + SEARCH_BY_NAME, config.getSearchByName());
-                pluginSettings.put(Config.CONFIG + COMMIT, config.getCommit());
-                pluginSettings.put(Config.CONFIG + MERGE_OPEN, config.getMergeOpen());
-                pluginSettings.put(Config.CONFIG + MERGE_REOPEN, config.getMergeReopen());
-                pluginSettings.put(Config.CONFIG + MERGE_MERGE, config.getMergeMerge());
-                pluginSettings.put(Config.CONFIG + MERGE_CLOSE, config.getMergeClose());
-                pluginSettings.put(Config.CONFIG + MERGE_APPROVE, config.getMergeApprove());
-                pluginSettings.put(Config.CONFIG + COMMIT_TRANSITIONS, config.getCommitTransitions());
-                pluginSettings.put(Config.CONFIG + MERGE_OPEN_TRANSITIONS, config.getMergeOpenTransitions());
-                pluginSettings.put(Config.CONFIG + MERGE_REOPEN_TRANSITIONS, config.getMergeReopenTransitions());
-                pluginSettings.put(Config.CONFIG + MERGE_MERGE_TRANSITIONS, config.getMergeMergeTransitions());
-                pluginSettings.put(Config.CONFIG + MERGE_CLOSE_TRANSITIONS, config.getMergeCloseTransitions());
-                pluginSettings.put(Config.CONFIG + MERGE_APPROVE_TRANSITIONS, config.getMergeApproveTransitions());
-                pluginSettings.put(Config.CONFIG + IS_ALL_ISSUES, config.getAllIssues());
-                pluginSettings.put(Config.CONFIG + IS_LINK_COMMIT, config.getLinkCommit());
-                pluginSettings.put(Config.CONFIG + IS_LINK_MERGE, config.getLinkMerge());
+                pluginSettings.put(Config.CONFIG + SEARCH_BY_NAME, config.getSearchByName() ? "1" : "0");
+                pluginSettings.put(Config.CONFIG + IS_ALL_ISSUES, config.getAllIssues() ? "1" : "0");
+
+                Set<String> projects = new HashSet<>((List<String>) Utility.getOrDefault(pluginSettings, Config.CONFIG + PROJECTS, new ArrayList<>()));
+                for (String projectKey : projects) {
+                    if (!projectKey.isEmpty() && !config.getProjectConfigs().containsKey(projectKey)) {
+                        // delete configs with prefix :projectId
+                        String prefix = ":" + projectKey;
+                        pluginSettings.remove(Config.CONFIG + prefix + PROJECT_TITLE);
+                        pluginSettings.remove(Config.CONFIG + prefix + PROJECT_TYPE);
+                        pluginSettings.remove(Config.CONFIG + prefix + PROJECT_LOCALID);
+
+                        pluginSettings.remove(Config.CONFIG + prefix + COMMIT);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_OPEN);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_REOPEN);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_MERGE);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_CLOSE);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_APPROVE);
+                        pluginSettings.remove(Config.CONFIG + prefix + COMMIT_TRANSITIONS);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_OPEN_TRANSITIONS);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_REOPEN_TRANSITIONS);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_MERGE_TRANSITIONS);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_CLOSE_TRANSITIONS);
+                        pluginSettings.remove(Config.CONFIG + prefix + MERGE_APPROVE_TRANSITIONS);
+                        pluginSettings.remove(Config.CONFIG + prefix + IS_LINK_COMMIT);
+                        pluginSettings.remove(Config.CONFIG + prefix + IS_LINK_MERGE);
+                    }
+                }
+
+                pluginSettings.put(Config.CONFIG + PROJECTS, new ArrayList<>(config.getProjectConfigs().keySet()));
+
+                for (Map.Entry<String, ProjectConfig> entry : config.getProjectConfigs().entrySet()) {
+                    String key = entry.getKey().trim().toLowerCase();
+                    String prefix = key.isEmpty() ? key : ":" + entry.getKey().trim().toLowerCase();
+                    pluginSettings.put(Config.CONFIG + prefix + PROJECT_TITLE, entry.getValue().getTitle().trim());
+                    pluginSettings.put(Config.CONFIG + prefix + PROJECT_TYPE, String.valueOf(entry.getValue().getType()));
+                    pluginSettings.put(Config.CONFIG + prefix + PROJECT_LOCALID, entry.getValue().getLocalId().toLowerCase().trim());
+
+                    pluginSettings.put(Config.CONFIG + prefix + COMMIT, entry.getValue().getCommit());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_OPEN, entry.getValue().getMergeOpen());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_REOPEN, entry.getValue().getMergeReopen());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_MERGE, entry.getValue().getMergeMerge());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_CLOSE, entry.getValue().getMergeClose());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_APPROVE, entry.getValue().getMergeApprove());
+                    pluginSettings.put(Config.CONFIG + prefix + COMMIT_TRANSITIONS, entry.getValue().getCommitTransitions().trim());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_OPEN_TRANSITIONS, entry.getValue().getMergeOpenTransitions().trim());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_REOPEN_TRANSITIONS, entry.getValue().getMergeReopenTransitions().trim());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_MERGE_TRANSITIONS, entry.getValue().getMergeMergeTransitions().trim());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_CLOSE_TRANSITIONS, entry.getValue().getMergeCloseTransitions().trim());
+                    pluginSettings.put(Config.CONFIG + prefix + MERGE_APPROVE_TRANSITIONS, entry.getValue().getMergeApproveTransitions().trim());
+                    pluginSettings.put(Config.CONFIG + prefix + IS_LINK_COMMIT, entry.getValue().isLinkCommit() ? "1" : "0");
+                    pluginSettings.put(Config.CONFIG + prefix + IS_LINK_MERGE, entry.getValue().isLinkMerge() ? "1" : "0");
+                }
                 return null;
             }
         });
@@ -161,22 +214,35 @@ public class ConfigResource {
         config.setToken((String) Utility.getOrDefault(settings, TOKEN, ""));
         config.setUser((String) Utility.getOrDefault(settings, USER, ""));
         config.setMapping((String) Utility.getOrDefault(settings, MAPPING, ""));
-        config.setSearchByName((String) Utility.getOrDefault(settings, SEARCH_BY_NAME, "0"));
-        config.setCommit((String) Utility.getOrDefault(settings, COMMIT, "0"));
-        config.setMergeOpen((String) Utility.getOrDefault(settings, MERGE_OPEN, "0"));
-        config.setMergeReopen((String) Utility.getOrDefault(settings, MERGE_REOPEN, "0"));
-        config.setMergeMerge((String) Utility.getOrDefault(settings, MERGE_MERGE, "0"));
-        config.setMergeClose((String) Utility.getOrDefault(settings, MERGE_CLOSE, "0"));
-        config.setMergeApprove((String) Utility.getOrDefault(settings, MERGE_APPROVE, "0"));
-        config.setCommitTransitions((String) Utility.getOrDefault(settings, COMMIT_TRANSITIONS, ""));
-        config.setMergeOpenTransitions((String) Utility.getOrDefault(settings, MERGE_OPEN_TRANSITIONS, ""));
-        config.setMergeReopenTransitions((String) Utility.getOrDefault(settings, MERGE_REOPEN_TRANSITIONS, ""));
-        config.setMergeMergeTransitions((String) Utility.getOrDefault(settings, MERGE_MERGE_TRANSITIONS, ""));
-        config.setMergeCloseTransitions((String) Utility.getOrDefault(settings, MERGE_CLOSE_TRANSITIONS, ""));
-        config.setMergeApproveTransitions((String) Utility.getOrDefault(settings, MERGE_APPROVE_TRANSITIONS, ""));
-        config.setAllIssues((String) Utility.getOrDefault(settings, IS_ALL_ISSUES, "0"));
-        config.setLinkCommit((String) Utility.getOrDefault(settings, IS_LINK_COMMIT, "0"));
-        config.setLinkMerge((String) Utility.getOrDefault(settings, IS_LINK_MERGE, "0"));
+        config.setSearchByName(Utility.getOrDefault(settings, SEARCH_BY_NAME, "0").equals("1"));
+        config.setAllIssues(Utility.getOrDefault(settings, IS_ALL_ISSUES, "0").equals("1"));
+        List<String> projects = (List<String>) Utility.getOrDefault(settings, PROJECTS, new ArrayList<String>());
+        config.setProjectConfigs(new HashMap<>());
+        if (projects.isEmpty()) {
+            projects.add("");
+        }
+        for (String project : projects) {
+            ProjectConfig projectConfig = new ProjectConfig();
+            projectConfig.setTitle((String) Utility.getOrDefault(settings, project, PROJECT_TITLE, "Default")); // TODO use i18n instead of string value
+            projectConfig.setLocalId((String) Utility.getOrDefault(settings, project, PROJECT_LOCALID, "0"));
+            projectConfig.setType(Integer.parseInt((String) Utility.getOrDefault(settings, project, PROJECT_TYPE, "0")));
+            projectConfig.setCommit((String) Utility.getOrDefault(settings, project, COMMIT, "0"));
+            projectConfig.setMergeOpen((String) Utility.getOrDefault(settings, project, MERGE_OPEN, "0"));
+            projectConfig.setMergeReopen((String) Utility.getOrDefault(settings, project, MERGE_REOPEN, "0"));
+            projectConfig.setMergeMerge((String) Utility.getOrDefault(settings, project, MERGE_MERGE, "0"));
+            projectConfig.setMergeClose((String) Utility.getOrDefault(settings, project, MERGE_CLOSE, "0"));
+            projectConfig.setMergeApprove((String) Utility.getOrDefault(settings, project, MERGE_APPROVE, "0"));
+            projectConfig.setCommitTransitions((String) Utility.getOrDefault(settings, project, COMMIT_TRANSITIONS, ""));
+            projectConfig.setMergeOpenTransitions((String) Utility.getOrDefault(settings, project, MERGE_OPEN_TRANSITIONS, ""));
+            projectConfig.setMergeReopenTransitions((String) Utility.getOrDefault(settings, project, MERGE_REOPEN_TRANSITIONS, ""));
+            projectConfig.setMergeMergeTransitions((String) Utility.getOrDefault(settings, project, MERGE_MERGE_TRANSITIONS, ""));
+            projectConfig.setMergeCloseTransitions((String) Utility.getOrDefault(settings, project, MERGE_CLOSE_TRANSITIONS, ""));
+            projectConfig.setMergeApproveTransitions((String) Utility.getOrDefault(settings, project, MERGE_APPROVE_TRANSITIONS, ""));
+            projectConfig.setLinkCommit(Utility.getOrDefault(settings, project, IS_LINK_COMMIT, "0").equals("1"));
+            projectConfig.setLinkMerge(Utility.getOrDefault(settings, project, IS_LINK_MERGE, "0").equals("1"));
+            config.getProjectConfigs().put(project, projectConfig);
+        }
+
         return config;
     }
 

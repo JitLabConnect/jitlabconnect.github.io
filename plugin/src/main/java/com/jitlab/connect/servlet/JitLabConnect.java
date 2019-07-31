@@ -16,6 +16,7 @@ import com.atlassian.templaterenderer.TemplateRenderer;
 import com.jitlab.connect.Utility;
 import com.jitlab.connect.admin.Config;
 import com.jitlab.connect.admin.ConfigResource;
+import com.jitlab.connect.admin.ProjectConfig;
 import com.jitlab.connect.servlet.entity.JitLabRequest;
 import com.jitlab.connect.servlet.entity.actions.Action;
 import com.jitlab.connect.servlet.entity.actions.JiraAction;
@@ -149,13 +150,17 @@ public class JitLabConnect extends HttpServlet {
             log.debug("Use user : '{}'", user.getUsername());
         }
 
+        ProjectConfig projectConfig = settings.getProjectConfigs().containsKey(request.getProjectId() + ";1")
+                ? settings.getProjectConfigs().get(request.getProjectId() + ";1")
+                : settings.getProjectConfigs().get("");
+
         // processors
         List<ActionVisitor> processors = new ArrayList<>();
         Action firstAction = request.getActions().get(0);
         if (firstAction instanceof MergeRequest) {
-            processors.addAll(populateProcessors((MergeRequest) firstAction, settings));
+            processors.addAll(populateProcessors((MergeRequest) firstAction, projectConfig));
         } else if (firstAction instanceof PushRequest) {
-            processors.addAll(populateProcessors((PushRequest) firstAction, settings));
+            processors.addAll(populateProcessors((PushRequest) firstAction, projectConfig));
         }
 
         // execute
@@ -173,7 +178,7 @@ public class JitLabConnect extends HttpServlet {
             return;
         }
 
-        List<MutableIssue> issues = populateIssues(action.getIssues(), user, issuesHash, settings.getAllIssues().equals("1"));
+        List<MutableIssue> issues = populateIssues(action.getIssues(), user, issuesHash, settings.getAllIssues());
         if (issues.isEmpty()) {
             log.error("Issues not found in Jira for request");
             return;
@@ -215,7 +220,7 @@ public class JitLabConnect extends HttpServlet {
         return issues;
     }
 
-    private List<ActionVisitor> populateProcessors(MergeRequest mergeRequest, Config settings) {
+    private List<ActionVisitor> populateProcessors(MergeRequest mergeRequest, ProjectConfig settings) {
         List<ActionVisitor> processors = new ArrayList<>();
         String action = mergeRequest.getEvent();
         List<Integer> transitions = null;
@@ -244,8 +249,7 @@ public class JitLabConnect extends HttpServlet {
         }
 
         // link to issue
-        String link = settings.getLinkMerge();
-        if (link.equals("1")) {
+        if (settings.isLinkMerge()) {
             processors.add(linkVisitor);
         }
 
@@ -256,7 +260,7 @@ public class JitLabConnect extends HttpServlet {
         return processors;
     }
 
-    private List<ActionVisitor> populateProcessors(PushRequest pushRequest, Config settings) {
+    private List<ActionVisitor> populateProcessors(PushRequest pushRequest, ProjectConfig settings) {
         List<ActionVisitor> processors = new ArrayList<>();
         String config = settings.getCommit();
         if (config.equals("1")) {
@@ -266,8 +270,7 @@ public class JitLabConnect extends HttpServlet {
         }
 
         // link to issue
-        String link = settings.getLinkCommit();
-        if (link.equals("1")) {
+        if (settings.isLinkCommit()) {
             processors.add(linkVisitor);
         }
 

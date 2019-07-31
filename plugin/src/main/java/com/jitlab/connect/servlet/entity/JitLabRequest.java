@@ -8,13 +8,16 @@ import java.util.List;
 public class JitLabRequest {
     private String user;
     private String userName;
-    private List<Action> actions;
+    private int projectId;
 
-    public JitLabRequest(String user, String userName) {
+    public JitLabRequest(String user, String userName, int projectId) {
         this.user = user;
         this.userName = userName;
+        this.projectId = projectId;
         actions = new ArrayList<>();
     }
+
+    private List<Action> actions;
 
     public String getUser() {
         return user;
@@ -26,6 +29,14 @@ public class JitLabRequest {
 
     public List<Action> getActions() {
         return actions;
+    }
+
+    public int getProjectId() {
+        return projectId;
+    }
+
+    public void setProjectId(int projectId) {
+        this.projectId = projectId;
     }
 
     @Override

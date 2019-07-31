@@ -74,6 +74,24 @@ public class Utility {
         return map;
     }
 
+    /*public static List<Pair<List<Integer>, List<Integer>>> parseTransitions(String input) {
+        List<Pair<List<Integer>, List<Integer>>> list = new ArrayList<>();
+        if (StringUtils.isEmpty(input)) {
+            return list;
+        }
+
+        String[] items = input.split(";");
+        for (String item : items) {
+            String[] pair = item.split(":");
+            if (pair.length == 0) continue;
+
+            List<Integer> values = stringToList(pair[pair.length - 1]);
+            list.add(new ImmutablePair<>(pair.length < 2 ? stringToList(pair[0]) : Collections.emptyList(), values));
+        }
+
+        return list;
+    }*/
+
     public static List<Integer> stringToList(String input) {
         List<Integer> list = new ArrayList<>();
         if (StringUtils.isEmpty(input)) {
@@ -93,6 +111,14 @@ public class Utility {
     }
 
     public static Object getOrDefault(PluginSettings settings, String key, Object value) {
+        Object v = settings.get(Config.CONFIG + key);
+        return (v != null) ? v : value;
+    }
+
+    public static Object getOrDefault(PluginSettings settings, String projectId, String key, Object value) {
+        if (!projectId.isEmpty()) {
+            key = ":" + projectId + key;
+        }
         Object v = settings.get(Config.CONFIG + key);
         return (v != null) ? v : value;
     }
