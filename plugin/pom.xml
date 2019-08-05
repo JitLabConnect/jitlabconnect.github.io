@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jitlab</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.0.14</version>
+    <version>1.0.15</version>
     <organization>
         <name>Kirill Shashov</name>
         <url>https://jitlabconnect.github.io/</url>
@@ -245,7 +244,7 @@
             </plugin>
         </plugins>
     </build>
-   <!--<pluginRepositories>
+    <pluginRepositories>
         <pluginRepository>
             <id>atlassian-public</id>
             <url>https://m2proxy.atlassian.com/repository/public/</url>
@@ -256,10 +255,18 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
-    </pluginRepositories>-->
+    </pluginRepositories>
     <properties>
+        <!-- jira 8.0+
+        <jira.version>8.1.0</jira.version>
+        <amps.version>8.0.0</amps.version>
+            jira 7.x
+         <jira.version>7.12.3</jira.version>
+         <amps.version>6.3.21</amps.version>
+        -->
+
         <jira.version>6.4.1</jira.version>
-        <amps.version>6.3.6</amps.version>
+        <amps.version>6.3.21</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
         <!-- This key is used to keep the consistency between the key in atlassian-plugin.xml and the key to generate bundle. -->

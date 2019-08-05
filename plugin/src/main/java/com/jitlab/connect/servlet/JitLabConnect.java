@@ -6,6 +6,7 @@ import com.atlassian.jira.bc.user.search.UserSearchParams;
 import com.atlassian.jira.component.ComponentAccessor;
 import com.atlassian.jira.issue.MutableIssue;
 import com.atlassian.jira.user.ApplicationUser;
+import com.atlassian.jira.user.ApplicationUsers;
 import com.atlassian.jira.user.util.UserManager;
 import com.atlassian.plugin.spring.scanner.annotation.component.Scanned;
 import com.atlassian.plugin.spring.scanner.annotation.imports.ComponentImport;
@@ -206,7 +207,7 @@ public class JitLabConnect extends HttpServlet {
                 continue;
             }
 
-            IssueService.IssueResult issue = issueService.getIssue(user, key);
+            IssueService.IssueResult issue = issueService.getIssue(ApplicationUsers.toDirectoryUser(user), key);
             if ((issue != null) && issue.isValid()) {
                 issues.add(issue.getIssue());
                 issuesHash.put(key, issue.getIssue());

@@ -60,7 +60,8 @@
                     <label>$i18n.getText("jitlab-connect.admin.searchbyname.label"):</label>
                     <div class="checkbox">
                         <input class="checkbox" type="checkbox" name="jitlab-searchbyname" id="jitlab-searchbyname" />
-                        <label for="jitlab-allissues">$i18n.getText("jitlab-connect.admin.searchbyname.caption")</label>
+                        <label for="jitlab-searchbyname">$i18n.getText("jitlab-connect.admin.searchbyname.caption")
+                        </label>
                     </div>
                     <div class="description">$i18n.getText("jitlab-connect.admin.searchbyname.caption.caption")</div>
                 </div>
