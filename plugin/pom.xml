@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jitlab</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.0.15</version>
+    <version>1.0.15-SNAPSHOT</version>
     <organization>
         <name>Kirill Shashov</name>
         <url>https://jitlabconnect.github.io/</url>
@@ -12,6 +12,12 @@
     <name>JitLabConnect</name>
     <description>The JitLab Connect allows you to report about the GitLab updates in the Jira tasks</description>
     <packaging>atlassian-plugin</packaging>
+    <url>https://github.com/JitLabConnect/jitlabconnect.github.io</url>
+    <scm>
+        <connection>scm:git:https://github.com/JitLabConnect/jitlabconnect.github.io.git</connection>
+        <developerConnection>scm:git:https://github.com/JitLabConnect/jitlabconnect.github.io.git</developerConnection>
+        <url>https://github.com/JitLabConnect/jitlabconnect.github.io</url>
+    </scm>
     <dependencies>
         <dependency>
             <groupId>com.atlassian.jira</groupId>
