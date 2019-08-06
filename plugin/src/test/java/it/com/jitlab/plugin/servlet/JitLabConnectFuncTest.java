@@ -24,7 +24,7 @@ public class JitLabConnectFuncTest {
     public void setup() {
         httpClient = new DefaultHttpClient();
         baseUrl = System.getProperty("baseurl");
-        servletUrl = baseUrl + "/plugins/servlet/jitlabconnect";
+        servletUrl = baseUrl + "/plugins/servlet/jitlab";
     }
 
     @After
