@@ -20,11 +20,10 @@
         <tag>jitlab-connect-1.0.16</tag>
     </scm>
     <distributionManagement>
-        <site>
-            <id>jitlab-connect</id>
-            <name>JitLabConnect</name>
-            <url>gitsite:kshashov@github.com/JitLabConnect/jitlabconnect.github.io.git</url>
-        </site>
+        <repository>
+            <id>nexus-site</id>
+            <url>http://central_nexus/server</url>
+        </repository>
     </distributionManagement>
     <dependencies>
         <dependency>
