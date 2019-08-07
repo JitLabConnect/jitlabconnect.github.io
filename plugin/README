@@ -4,6 +4,11 @@
                  - 'pi' reinstalls the plugin into the running product instance
 * atlas-help  -- prints description for all commands in the SDK
 
+Release:
+
+atlas-mvn release:prepare
+atlas-mvn release:perform -Darguments="-Dmaven.deploy.skip=true"
+
 Full documentation is always available at:
 
 https://developer.atlassian.com/display/DOCS/Introduction+to+the+Atlassian+Plugin+SDK
