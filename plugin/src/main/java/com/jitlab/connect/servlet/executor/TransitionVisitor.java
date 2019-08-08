@@ -3,7 +3,6 @@ package com.jitlab.connect.servlet.executor;
 import com.atlassian.jira.bc.issue.IssueService;
 import com.atlassian.jira.issue.MutableIssue;
 import com.atlassian.jira.user.ApplicationUser;
-import com.atlassian.jira.user.ApplicationUsers;
 import com.jitlab.connect.servlet.entity.actions.MergeRequest;
 import com.jitlab.connect.servlet.entity.actions.PushRequest;
 import org.slf4j.Logger;
@@ -47,9 +46,9 @@ public class TransitionVisitor implements ActionVisitor {
 
     private void doTransition(int actionId, ApplicationUser user, MutableIssue issue) {
         log.debug("Push to JIRA transitions ({}, {})", issue.getKey(), user.getUsername());
-        IssueService.TransitionValidationResult validationResult = issueService.validateTransition(ApplicationUsers.toDirectoryUser(user), issue.getId(), actionId, issueService.newIssueInputParameters());
+        IssueService.TransitionValidationResult validationResult = issueService.validateTransition(user, issue.getId(), actionId, issueService.newIssueInputParameters());
         if (validationResult.isValid()) {
-            IssueService.IssueResult transResult = issueService.transition(ApplicationUsers.toDirectoryUser(user), validationResult);
+            IssueService.IssueResult transResult = issueService.transition(user, validationResult);
             if (transResult.isValid()) {
                 log.debug("Created a transition for JIRA task ({}, {})", issue.getKey(), user.getUsername());
                 return;

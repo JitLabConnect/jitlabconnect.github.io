@@ -3,8 +3,10 @@ package it.com.jitlab.plugin.servlet;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.impl.client.BasicResponseHandler;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,19 +19,21 @@ import static org.junit.Assert.assertTrue;
 public class JitLabConnectFuncTest {
 
     HttpClient httpClient;
+    HttpClientConnectionManager connectionManager;
     String baseUrl;
     String servletUrl;
 
     @Before
     public void setup() {
-        httpClient = new DefaultHttpClient();
+        connectionManager = new BasicHttpClientConnectionManager();
+        httpClient = HttpClientBuilder.create().setConnectionManager(connectionManager).build();
         baseUrl = System.getProperty("baseurl");
         servletUrl = baseUrl + "/plugins/servlet/jitlab";
     }
 
     @After
     public void tearDown() {
-        httpClient.getConnectionManager().shutdown();
+        connectionManager.shutdown();
     }
 
     @Test

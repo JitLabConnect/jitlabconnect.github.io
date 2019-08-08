@@ -112,7 +112,7 @@ public class LinkVisitor implements ActionVisitor {
                 .issueId(issue.getId())
                 .applicationName("JitLab Connect")
                 .applicationType("com.jitlab.connect")
-                .iconUrl(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png")
+                .iconUrl(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.jitlab-connect:jitlab-connect-resources/images/pluginIcon.png")
                 .relationship("GitLab")
                 .title(text)
                 .url(url.getUrl())

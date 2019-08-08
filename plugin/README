@@ -3,6 +3,7 @@
 * atlas-cli   -- after atlas-run or atlas-debug, opens a Maven command line window:
                  - 'pi' reinstalls the plugin into the running product instance
 * atlas-help  -- prints description for all commands in the SDK
++ -c tomcat7x for Jira 7
 
 Release:
 

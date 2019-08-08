@@ -83,7 +83,7 @@ public class ActivityVisitor implements ActionVisitor {
                 .title(Option.option(new Html(title)))
                 .content(Option.option(new Html(body)))
                 .url(Option.option(URI.create(url.getUrl())))
-                .icon(Option.option(Image.withUrl(URI.create(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.plugin:jitlab-connect-resources/images/pluginIcon.png"))))
+                .icon(Option.option(Image.withUrl(URI.create(applicationProperties.getBaseUrl(UrlMode.ABSOLUTE) + "/download/resources/com.jitlab.jitlab-connect:jitlab-connect-resources/images/pluginIcon.png"))))
                 .build();
         for (Activity activity : result.right()) {
             activityService.postActivity(activity);

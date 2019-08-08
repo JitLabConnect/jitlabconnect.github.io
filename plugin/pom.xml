@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.jitlab</groupId>
     <artifactId>jitlab-connect</artifactId>
-    <version>1.0.18-SNAPSHOT</version>
+    <version>7.0.0-SNAPSHOT</version>
     <organization>
         <name>Kirill Shashov</name>
         <url>https://jitlabconnect.github.io/</url>
@@ -277,7 +277,7 @@
          <amps.version>6.3.21</amps.version>
         -->
 
-        <jira.version>6.4.1</jira.version>
+        <jira.version>7.0.0</jira.version>
         <amps.version>6.3.21</amps.version>
         <plugin.testrunner.version>1.2.3</plugin.testrunner.version>
         <atlassian.spring.scanner.version>1.2.13</atlassian.spring.scanner.version>
