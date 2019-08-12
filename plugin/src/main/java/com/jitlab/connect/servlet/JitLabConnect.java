@@ -13,6 +13,7 @@ import com.atlassian.sal.api.auth.LoginUriProvider;
 import com.atlassian.sal.api.pluginsettings.PluginSettingsFactory;
 import com.atlassian.sal.api.user.UserProfile;
 import com.atlassian.templaterenderer.TemplateRenderer;
+import com.google.common.collect.Sets;
 import com.jitlab.connect.Utility;
 import com.jitlab.connect.admin.Config;
 import com.jitlab.connect.admin.ConfigResource;
@@ -114,7 +115,7 @@ public class JitLabConnect extends HttpServlet {
         }
 
         String requestToken = req.getHeader("X-Gitlab-Token");
-        if ((requestToken == null) || !pluginToken.equals(requestToken)) {
+        if (!pluginToken.equals(requestToken)) {
             log.error("Invalid X-Gitlab-Token header");
             res.sendError(Response.Status.UNAUTHORIZED.getStatusCode());
             return;
@@ -122,15 +123,14 @@ public class JitLabConnect extends HttpServlet {
 
         // request
         String requestType = req.getHeader("X-Gitlab-Event");
+        Set<String> allowedTypes = Sets.newHashSet("Merge Request Hook", "Push Hook", "System Hook");
         JitLabRequest request;
         if ((requestType == null)) {
             log.error("Invalid X-Gitlab-Event header");
             res.sendError(Response.Status.BAD_REQUEST.getStatusCode());
             return;
-        } else if (requestType.equalsIgnoreCase("Merge Request Hook")) {
-            request = UtilityParser.getRequestForMerge(Utility.streamToString(req.getReader()));
-        } else if (requestType.equalsIgnoreCase("Push Hook")) {
-            request = UtilityParser.getRequestForPush(Utility.streamToString(req.getReader()));
+        } else if (allowedTypes.contains(requestType.trim())) {
+            request = UtilityParser.parseRequest(Utility.streamToString(req.getReader()));
         } else {
             log.error("Invalid X-Gitlab-Event header: '{}'", requestType);
             res.sendError(Response.Status.BAD_REQUEST.getStatusCode());
