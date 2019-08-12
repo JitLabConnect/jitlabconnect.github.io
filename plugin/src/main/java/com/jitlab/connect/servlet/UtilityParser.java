@@ -21,62 +21,70 @@ public class UtilityParser {
     private static final Logger log = LoggerFactory.getLogger(JitLabConnect.class);
     private static final Pattern pattern = Pattern.compile("((?<!([A-Za-z]{1,10})-?)[A-Z]+-\\d+)");
 
-    public static JitLabRequest getRequestForMerge(String requestBody) {
+    public static JitLabRequest parseRequest(String requestBody) {
         try {
             JsonObject json = getJsonElement(requestBody).getAsJsonObject();
 
-            String user = json.getAsJsonObject("user").getAsJsonPrimitive("username").getAsString();
-            String userName = json.getAsJsonObject("user").getAsJsonPrimitive("name").getAsString();
-            int project = json.getAsJsonObject("project").getAsJsonPrimitive("id").getAsInt();
-            JitLabRequest request = new JitLabRequest(user, userName, project);
+            String objectKind = json.getAsJsonPrimitive(
+                    json.has("object_kind") ? "object_kind" : "event_name"
+            ).getAsString().trim();
 
-            String id = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("id").getAsString();
-            String title = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("title").getAsString();
-            String description = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("description").getAsString();
-            String state = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("state").getAsString();
-            String action = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("action").getAsString();
-            String url = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("url").getAsString();
-
-            AdaptiveUrl aUrl = new AdaptiveUrl(id, url);
-            Set<String> issues = Utility.getUniqueArray(pattern, title);
-            String actionName = Utility.getPastForm(action);
-
-            request.getActions().add(new MergeRequest(aUrl, issues, title, description, actionName, state));
-
-            return request;
+            if (objectKind.equals("merge_request")) {
+                return getRequestForMerge(json);
+            } else if (objectKind.equals("push")) {
+                return getRequestForPush(json);
+            } else {
+                throw new IllegalArgumentException();
+            }
         } catch (Exception e) {
             log.debug("Parsing error: {}", e.getMessage());
             return null;
         }
     }
 
-    public static JitLabRequest getRequestForPush(String requestBody) {
-        try {
-            JsonObject json = getJsonElement(requestBody).getAsJsonObject();
-            String user = json.getAsJsonPrimitive("user_username").getAsString();
-            String userName = json.getAsJsonPrimitive("user_name").getAsString();
-            int project = json.getAsJsonObject("project").getAsJsonPrimitive("id").getAsInt();
+    protected static JitLabRequest getRequestForMerge(JsonObject json) {
+        String user = json.getAsJsonObject("user").getAsJsonPrimitive("username").getAsString();
+        String userName = json.getAsJsonObject("user").getAsJsonPrimitive("name").getAsString();
+        int project = json.getAsJsonObject("project").getAsJsonPrimitive("id").getAsInt();
+        JitLabRequest request = new JitLabRequest(user, userName, project);
 
-            JitLabRequest request = new JitLabRequest(user, userName, project);
+        String id = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("id").getAsString();
+        String title = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("title").getAsString();
+        String description = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("description").getAsString();
+        String state = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("state").getAsString();
+        String action = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("action").getAsString();
+        String url = json.getAsJsonObject("object_attributes").getAsJsonPrimitive("url").getAsString();
 
-            JsonArray commits = json.getAsJsonArray("commits");
-            for (int i = 0; i < commits.size(); i++) {
-                JsonObject commit = (JsonObject) commits.get(i);
-                String id = commit.getAsJsonPrimitive("id").getAsString();
-                String url = commit.getAsJsonPrimitive("url").getAsString();
-                String text = commit.getAsJsonPrimitive("message").getAsString();
+        AdaptiveUrl aUrl = new AdaptiveUrl(id, url);
+        Set<String> issues = Utility.getUniqueArray(pattern, title);
+        String actionName = Utility.getPastForm(action);
 
-                AdaptiveUrl aUrl = new AdaptiveUrl(id, url);
-                Set<String> issues = Utility.getUniqueArray(pattern, text);
+        request.getActions().add(new MergeRequest(aUrl, issues, title, description, actionName, state));
 
-                request.getActions().add(new PushRequest(aUrl, issues, text));
-            }
+        return request;
+    }
 
-            return request;
-        } catch (Exception e) {
-            log.debug("Parsing error: {}", e.getMessage());
-            return null;
+    protected static JitLabRequest getRequestForPush(JsonObject json) {
+        String user = json.getAsJsonPrimitive("user_username").getAsString();
+        String userName = json.getAsJsonPrimitive("user_name").getAsString();
+        int project = json.getAsJsonObject("project").getAsJsonPrimitive("id").getAsInt();
+
+        JitLabRequest request = new JitLabRequest(user, userName, project);
+
+        JsonArray commits = json.getAsJsonArray("commits");
+        for (int i = 0; i < commits.size(); i++) {
+            JsonObject commit = (JsonObject) commits.get(i);
+            String id = commit.getAsJsonPrimitive("id").getAsString();
+            String url = commit.getAsJsonPrimitive("url").getAsString();
+            String text = commit.getAsJsonPrimitive("message").getAsString();
+
+            AdaptiveUrl aUrl = new AdaptiveUrl(id, url);
+            Set<String> issues = Utility.getUniqueArray(pattern, text);
+
+            request.getActions().add(new PushRequest(aUrl, issues, text));
         }
+
+        return request;
     }
 
     private static JsonElement getJsonElement(String request) {

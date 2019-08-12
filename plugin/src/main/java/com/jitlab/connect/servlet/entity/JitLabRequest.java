@@ -9,6 +9,7 @@ public class JitLabRequest {
     private String user;
     private String userName;
     private int projectId;
+    private List<Action> actions;
 
     public JitLabRequest(String user, String userName, int projectId) {
         this.user = user;
@@ -16,8 +17,6 @@ public class JitLabRequest {
         this.projectId = projectId;
         actions = new ArrayList<>();
     }
-
-    private List<Action> actions;
 
     public String getUser() {
         return user;
