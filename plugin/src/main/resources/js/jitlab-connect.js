@@ -199,6 +199,7 @@
           result += base.charAt(Math.floor(Math.random() * base.length));
         }
         $("#jitlab-token").val(result);
+        $("#jitlab-token").trigger('input');
     }
 
     function addProjectOption(key, title) {
