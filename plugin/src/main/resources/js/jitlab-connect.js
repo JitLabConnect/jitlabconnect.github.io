@@ -141,7 +141,7 @@
             config.projectConfigs[id].commitTransitions = this.value.trim();
         });
 
-        $('jitlab-merge1-transitions').on('change', function() {
+        $('#jitlab-merge1-transitions').on('change', function() {
             var id = $('#jitlab-project').val();
             config.projectConfigs[id].mergeOpenTransitions = this.value.trim();
         });
