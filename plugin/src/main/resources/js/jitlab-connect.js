@@ -141,7 +141,7 @@
             config.projectConfigs[id].commitTransitions = this.value.trim();
         });
 
-        $('jitlab-merge1-transitions').on('change', function() {
+        $('#jitlab-merge1-transitions').on('change', function() {
             var id = $('#jitlab-project').val();
             config.projectConfigs[id].mergeOpenTransitions = this.value.trim();
         });
@@ -199,6 +199,7 @@
           result += base.charAt(Math.floor(Math.random() * base.length));
         }
         $("#jitlab-token").val(result);
+        $("#jitlab-token").trigger('input');
     }
 
     function addProjectOption(key, title) {
