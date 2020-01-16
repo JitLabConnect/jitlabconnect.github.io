@@ -3,11 +3,10 @@
 </p>
 
 ## Advantages
-- Support for **Push requests** and **Merge requests**
-- Detailed configuration of actions: **Comment**, **Activity**, **Do nothing**
+- Support for **push** and **merge request** events
+- Detailed actions configurations: create comments, activity, or link
 - Support for multiple tasks in a single request
-- Support for jira transitions
-- Adding links to tasks
+- Support for Jira transitions
 - [Open source](https://github.com/JitLabConnect/jitlabconnect.github.io/)
 
 ## Quick start
@@ -23,9 +22,12 @@
 
 ## Screenshots
 ### Admin panel
+**Integration configurations**
 <p align="center"> 
   <img src="/img/admin0.png">
 </p>
+
+**Custom configurations for Gitlab projects**
 <p align="center"> 
   <img src="/img/admin1.png">
 </p>
