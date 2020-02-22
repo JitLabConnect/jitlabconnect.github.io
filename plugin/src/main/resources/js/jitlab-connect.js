@@ -75,7 +75,7 @@
             config.mapping = $(this).val().trim();
         });
 
-        $("#jitlab-allIssues").change(function() {
+        $("#jitlab-allissues").change(function() {
             config.allIssues = $(this).is(':checked');
         });
 
