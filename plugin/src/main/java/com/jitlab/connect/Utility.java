@@ -125,7 +125,7 @@ public class Utility {
 
     public static Set<String> getUniqueArray(Pattern tagMatcher, String str) {
         Matcher m = tagMatcher.matcher(str);
-        HashSet<String> set = new HashSet<>();
+        HashSet<String> set = new LinkedHashSet<>();
         while (m.find()) {
             set.add(m.group());
         }
