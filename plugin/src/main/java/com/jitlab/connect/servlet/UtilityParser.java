@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 
 public class UtilityParser {
     private static final Logger log = LoggerFactory.getLogger(JitLabConnect.class);
-    private static final Pattern pattern = Pattern.compile("((?<!([A-Za-z]{1,10})-?)[A-Z]+-\\d+)");
+    private static final Pattern pattern = Pattern.compile("((?<!([A-Za-z]{1,10})-?)[A-Z0-9]+-\\d+)");
 
     public static JitLabRequest parseRequest(String requestBody) {
         try {
